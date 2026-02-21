@@ -111,6 +111,42 @@ test('match: 핵심 요건이 확인되면 보수적으로 유력 판정한다',
 });
 
 
+test('match: 동일 공고도 UserProfile에 따라 판정 등급이 달라진다', () => {
+  const parsedItems = parse([
+    {
+      announcement_id: 'SH-2026-007-1',
+      source_org: 'SH',
+      application_type_raw: '행복주택',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 100% 이하, 총자산 3억 이하',
+    },
+  ]);
+
+  const [matchedForEligibleProfile] = match(parsedItems, {
+    region: '서울',
+    incomeBand: '100% 이하',
+    assetBand: '3억 이하',
+    householdType: '무주택세대구성원',
+  });
+  const [matchedForIneligibleProfile] = match(parsedItems, {
+    region: '부산',
+    incomeBand: '120% 이하',
+    assetBand: '4억 이하',
+    householdType: '무주택세대구성원',
+  });
+
+  assert.equal(matchedForEligibleProfile.grade, '확정 가능');
+  assert.ok(matchedForEligibleProfile.reasons.every((reason) => reason.startsWith('PROFILE_MATCH')));
+
+  assert.equal(matchedForIneligibleProfile.grade, '부적합');
+  assert.ok(
+    matchedForIneligibleProfile.reasons.some((reason) =>
+      reason.startsWith('PROFILE_MISMATCH: region_requirement'),
+    ),
+  );
+});
+
+
 test('match fixture: 검토필요 사유별 비중 집계를 계산할 수 있다', () => {
   const matchedItems = match(
     parse([

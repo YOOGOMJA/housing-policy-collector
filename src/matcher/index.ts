@@ -9,6 +9,13 @@ export type MatchedItem = ParsedItem & {
   reasons: string[];
 };
 
+export type UserProfile = {
+  region: string;
+  incomeBand: string;
+  assetBand: string;
+  householdType: string;
+};
+
 
 export type MatcherReviewReasonCategory =
   | 'unknown_or_ambiguity'
@@ -90,7 +97,63 @@ const hasLegalDisqualifyingSignal = (item: ParsedItem): boolean => {
   return EXPLICIT_VIOLATION_PATTERNS.some((pattern) => pattern.test(legalContext));
 };
 
-const evaluateInitialGrade = (item: ParsedItem): Pick<MatchedItem, 'grade' | 'reasons'> => {
+type ProfileComparison = {
+  hasMismatch: boolean;
+  hasFullMatch: boolean;
+  reasons: string[];
+};
+
+const compareRequirementByProfile = (
+  requirement: string | null,
+  profileValue: string,
+  reasonCode: string,
+): { matched: boolean; reason: string } => {
+  if (requirement === null) {
+    return {
+      matched: false,
+      reason: `PROFILE_COMPARISON_SKIPPED: ${reasonCode}: requirement-null`,
+    };
+  }
+
+  const matched = requirement.includes(profileValue);
+  return {
+    matched,
+    reason: matched
+      ? `PROFILE_MATCH: ${reasonCode}: ${profileValue}`
+      : `PROFILE_MISMATCH: ${reasonCode}: expected-${profileValue} / requirement-${requirement}`,
+  };
+};
+
+const compareItemWithProfile = (item: ParsedItem, profile: UserProfile): ProfileComparison => {
+  const comparisonResults = [
+    compareRequirementByProfile(item.region_requirement, profile.region, 'region_requirement'),
+    compareRequirementByProfile(item.income_requirement, profile.incomeBand, 'income_requirement'),
+    compareRequirementByProfile(item.asset_requirement, profile.assetBand, 'asset_requirement'),
+    compareRequirementByProfile(
+      item.household_requirement,
+      profile.householdType,
+      'household_requirement',
+    ),
+  ];
+
+  const mismatchReasons = comparisonResults
+    .filter((result) => result.reason.startsWith('PROFILE_MISMATCH'))
+    .map((result) => result.reason);
+  const matchReasons = comparisonResults
+    .filter((result) => result.reason.startsWith('PROFILE_MATCH'))
+    .map((result) => result.reason);
+
+  return {
+    hasMismatch: mismatchReasons.length > 0,
+    hasFullMatch: comparisonResults.every((result) => result.matched),
+    reasons: [...mismatchReasons, ...matchReasons],
+  };
+};
+
+const evaluateInitialGrade = (
+  item: ParsedItem,
+  profile?: UserProfile,
+): Pick<MatchedItem, 'grade' | 'reasons'> => {
   if (hasLegalDisqualifyingSignal(item)) {
     return {
       grade: '부적합',
@@ -110,6 +173,24 @@ const evaluateInitialGrade = (item: ParsedItem): Pick<MatchedItem, 'grade' | 're
       grade: '검토필요',
       reasons: ['REVIEW_CAP_APPLIED: MISSING_REGION_OR_INCOME_OR_ASSET'],
     };
+  }
+
+  if (profile !== undefined) {
+    const profileComparison = compareItemWithProfile(item, profile);
+
+    if (profileComparison.hasMismatch) {
+      return {
+        grade: '부적합',
+        reasons: profileComparison.reasons,
+      };
+    }
+
+    if (profileComparison.hasFullMatch) {
+      return {
+        grade: '확정 가능',
+        reasons: profileComparison.reasons,
+      };
+    }
   }
 
   return {
@@ -136,9 +217,9 @@ const enforceParserJudgementCap = (
   return decision;
 };
 
-export const match = (parsedItems: ParsedItem[]): MatchedItem[] => {
+export const match = (parsedItems: ParsedItem[], profile?: UserProfile): MatchedItem[] => {
   return parsedItems.map((item) => {
-    const initialDecision = evaluateInitialGrade(item);
+    const initialDecision = evaluateInitialGrade(item, profile);
     const finalDecision = enforceParserJudgementCap(item, initialDecision);
 
     return {
