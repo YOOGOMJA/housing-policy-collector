@@ -62,7 +62,7 @@ PR에는 아래 항목을 반드시 포함합니다.
 `.github/pull_request_template.md`를 기본 템플릿으로 사용합니다.
 
 ### 문서 변경 시 추가 체크리스트
-- 코드 변경이 포함된 경우 lint/컨벤션 체크를 수행했는가?
+- 코드 변경이 포함된 경우 lint/컨벤션 체크를 수행하고 **TS lint 통과**를 확인했는가?
 - 문서 변경 시 YAML 파일이 포함된 경우에만 문서 포매팅/문법 체크를 수행했는가?
 - 문서를 신규 추가한 경우 `docs/README.md` 및 관련 참조 문서 반영 여부를 확인했는가?
 - 루트 에이전트 문서(`AGENTS.md`, `claude.md`) 변경 시 AI 지침 문서와 충돌 여부를 확인했는가?
@@ -83,7 +83,7 @@ npm run typecheck
 npm run build
 ```
 
-- `npm run lint`: ESLint + `@typescript-eslint/*` 규칙 적용 확인 (JS/TS/TSX 확장자 검사)
+- `npm run lint`: ESLint + `@typescript-eslint/*` + import 정렬 규칙 적용 확인 (JS/CJS/TS 확장자 검사, `src/**/*.ts`·`tests/**/*.ts` 포함)
 - `npm run typecheck`: TypeScript 타입 오류를 `--noEmit` 기준으로 검증
 - `npm run build`: `tsconfig.json` 컴파일 기준(`rootDir`, `outDir`, `module`, `target`, `strict`) 검증
 
