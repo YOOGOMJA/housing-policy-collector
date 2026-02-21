@@ -6,6 +6,7 @@
 
 export const ACCEPTANCE_BATCH_RUN_COUNT = 5;
 export const SH_RECENT_TARGET_COUNT = 50;
+export const ACCEPTANCE_REVIEW_NEEDED_RATIO_THRESHOLD = 0.15;
 
 export type AcceptanceBatchSample = {
   runId: string;
@@ -25,6 +26,35 @@ export type AcceptanceEvaluationResult = {
   pass: boolean;
   failures: string[];
   snapshots: AcceptanceMetricSnapshot[];
+};
+
+
+export type ReviewNeededRatioDatasetRow = {
+  runId: string;
+  collectedSuccessCount: number;
+  reviewNeededCount: number;
+};
+
+export const ACCEPTANCE_REVIEW_NEEDED_RATIO_DATASET: ReviewNeededRatioDatasetRow[] = [
+  { runId: 'dataset-run-1', collectedSuccessCount: 49, reviewNeededCount: 7 },
+  { runId: 'dataset-run-2', collectedSuccessCount: 48, reviewNeededCount: 7 },
+  { runId: 'dataset-run-3', collectedSuccessCount: 50, reviewNeededCount: 7 },
+  { runId: 'dataset-run-4', collectedSuccessCount: 49, reviewNeededCount: 6 },
+  { runId: 'dataset-run-5', collectedSuccessCount: 49, reviewNeededCount: 7 },
+];
+
+export const buildAcceptanceSamplesFromReviewDataset = (
+  dataset: ReviewNeededRatioDatasetRow[],
+): AcceptanceBatchSample[] => {
+  return dataset.map((row) => {
+    return {
+      runId: row.runId,
+      shRecentTargetCount: SH_RECENT_TARGET_COUNT,
+      collectedSuccessCount: row.collectedSuccessCount,
+      requiredFieldsCompleteCount: row.collectedSuccessCount,
+      reviewNeededCount: row.reviewNeededCount,
+    };
+  });
 };
 
 const formatPercent = (value: number): string => {
@@ -111,7 +141,7 @@ export const evaluateAcceptanceBatches = (
       );
     }
 
-    if (reviewNeededBranchRate > 0.15) {
+    if (reviewNeededBranchRate > ACCEPTANCE_REVIEW_NEEDED_RATIO_THRESHOLD) {
       failures.push(
         buildFailureMessage({
           metric: '검토필요 분기율',

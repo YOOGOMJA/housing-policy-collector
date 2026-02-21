@@ -3,6 +3,9 @@ import test from 'node:test';
 
 import {
   ACCEPTANCE_BATCH_RUN_COUNT,
+  ACCEPTANCE_REVIEW_NEEDED_RATIO_DATASET,
+  ACCEPTANCE_REVIEW_NEEDED_RATIO_THRESHOLD,
+  buildAcceptanceSamplesFromReviewDataset,
   evaluateAcceptanceBatches,
   SH_RECENT_TARGET_COUNT,
 } from '../src/metrics/acceptance.js';
@@ -80,4 +83,20 @@ test('acceptance evaluator: 수집 성공률 분모는 SH 최근 50건으로 고
     result.failures[1],
     /^\[ACCEPTANCE_FAIL\] run=batch-1 metric=수집 성공률 actual=78\.00% threshold=>=95\.00% formula=수집 성공 건수 \/ SH 최근 N\(50\)건$/,
   );
+});
+
+
+test('acceptance evaluator: 검토필요 비율 임계치(<=15%) 데이터셋을 acceptance evaluator에 연결한다', () => {
+  const samples = buildAcceptanceSamplesFromReviewDataset(ACCEPTANCE_REVIEW_NEEDED_RATIO_DATASET);
+  const result = evaluateAcceptanceBatches(samples);
+
+  assert.equal(samples.length, ACCEPTANCE_BATCH_RUN_COUNT);
+  assert.equal(result.pass, true);
+
+  for (const snapshot of result.snapshots) {
+    assert.equal(
+      snapshot.reviewNeededBranchRate <= ACCEPTANCE_REVIEW_NEEDED_RATIO_THRESHOLD,
+      true,
+    );
+  }
 });

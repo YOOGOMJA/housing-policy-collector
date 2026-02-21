@@ -12,6 +12,44 @@ export type ApplicationType =
 
 export type JudgementGradeCap = '확정 가능' | '검토필요';
 
+export type ParserReviewReasonCategory =
+  | 'missing_field'
+  | 'unknown_type'
+  | 'ambiguity'
+  | 'other';
+
+export const PARSER_REVIEW_REASON_CODEBOOK: Array<{
+  category: Exclude<ParserReviewReasonCategory, 'other'>;
+  codePrefix: string;
+  description: string;
+}> = [
+  {
+    category: 'missing_field',
+    codePrefix: 'MISSING_REQUIRED_FIELD',
+    description: '필수 필드 누락으로 자동 판정 불가',
+  },
+  {
+    category: 'unknown_type',
+    codePrefix: 'UNMAPPED_APPLICATION_TYPE',
+    description: 'application_type 정규화 불가(UNKNOWN)',
+  },
+  {
+    category: 'ambiguity',
+    codePrefix: 'AMBIGUOUS_RULE_TEXT',
+    description: '원문의 모호성/해석 필요 문구 존재',
+  },
+];
+
+export const classifyParserReviewReason = (
+  reasonCode: string,
+): ParserReviewReasonCategory => {
+  const matched = PARSER_REVIEW_REASON_CODEBOOK.find((entry) => {
+    return reasonCode.startsWith(entry.codePrefix);
+  });
+
+  return matched?.category ?? 'other';
+};
+
 type ParserLog = {
   trace_id: string;
   failure_reason: string | null;
