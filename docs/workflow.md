@@ -137,3 +137,15 @@ git fetch origin
 - `git ls-remote origin` 명령이 정상 응답하는지 확인
 - `git fetch origin` 실행 시 인증 프롬프트/에러 메시지 확인
 - private repository인 경우 PAT scope(`repo`) 및 SSO 승인 상태 확인
+
+
+## 7) Open PR 일괄 중단/Close 운영
+
+누적된 merge 실패로 다수 PR을 정리해야 하는 경우, 모든 Open PR에 동일 템플릿 코멘트를 남긴 뒤 Close 처리합니다.
+
+- 코멘트 필수 항목
+  - 중단 사유(merge 실패 누적)
+  - 새 작업 방식(새 브랜치/새 PR)
+  - 후속 추적 링크(이슈/트래킹 문서)
+- 상세 절차/템플릿: `docs/03-operations/05-open-pr-close-runbook.md`
+- 자동화 스크립트: `scripts/close_open_prs.py`
