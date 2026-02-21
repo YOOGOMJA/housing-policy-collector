@@ -72,7 +72,20 @@ PR에는 아래 항목을 반드시 포함합니다.
 - 변경 문서 간 링크/참조 누락이 없는가?
 - 코드 구조 변경 시 `docs/02-tech-wiki/01-architecture.md`의 모듈명과 실제 디렉터리(`src/`)가 1:1인지 확인했는가?
 
-## 4) PR CI 자동 검증 기준
+## 4) TypeScript 전환 기준 및 검증 명령
+
+- `pyproject.toml`은 저장소에서 제거되어 Python 빌드/실행 경로는 운영하지 않습니다.
+- TS 코드 변경 시 아래 명령으로 lint/컨벤션 적용 여부를 검증합니다.
+
+```bash
+npm run lint
+npm run build
+```
+
+- `npm run lint`: ESLint + `@typescript-eslint/*` 규칙 적용 확인
+- `npm run build`: `tsconfig.json` 컴파일 기준(`rootDir`, `outDir`, `module`, `target`, `strict`) 검증
+
+## 5) PR CI 자동 검증 기준
 
 PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행됩니다.
 
@@ -99,7 +112,7 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
 - 일반 문서(`.md`) 변경만 있는 경우:
   - 문서 포맷/문법 체크는 실행하지 않음
 
-## 5) 권장 진행 순서
+## 6) 권장 진행 순서
 
 1. 이슈 필요 여부 판단 (생성 기준 체크)
 2. 필요 시 이슈 생성 (템플릿 기반)
@@ -108,7 +121,7 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
 5. PR 생성 (템플릿 기반)
 6. 리뷰 반영 및 머지
 
-## 6) Remote 연결 가이드 (로컬/에이전트 공통)
+## 7) Remote 연결 가이드 (로컬/에이전트 공통)
 
 PR 충돌 확인이나 브랜치 fetch가 필요할 때는 먼저 Git remote 연결 상태를 점검합니다.
 
