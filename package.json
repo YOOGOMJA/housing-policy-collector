@@ -9,13 +9,14 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "start:batch": "node dist/batch_main.js",
-    "lint": "eslint . --ext .js,.cjs,.mjs,.ts --max-warnings=0",
+    "lint": "eslint . --ext .js,.cjs,.mjs,.ts,.tsx --max-warnings=0",
     "format": "prettier --write \"**/*.{js,cjs,mjs,ts,json}\"",
     "format:check": "prettier --check \"**/*.{js,cjs,mjs,ts,json}\"",
     "commitlint": "commitlint --last",
     "commitlint:pr-title": "commitlint --config commitlint.pr-title.config.cjs --verbose",
     "docs:yaml:format:check": "bash -lc 'shopt -s globstar nullglob; files=(docs/**/*.yml docs/**/*.yaml); if [ ${#files[@]} -eq 0 ]; then echo \"YAML 파일 없음: 검사 생략\"; exit 0; fi; prettier --check \"${files[@]}\"'",
-    "docs:yaml:lint": "bash -lc 'shopt -s globstar nullglob; files=(docs/**/*.yml docs/**/*.yaml); if [ ${#files[@]} -eq 0 ]; then echo \"YAML 파일 없음: 검사 생략\"; exit 0; fi; yaml-lint \"${files[@]}\"'"
+    "docs:yaml:lint": "bash -lc 'shopt -s globstar nullglob; files=(docs/**/*.yml docs/**/*.yaml); if [ ${#files[@]} -eq 0 ]; then echo \"YAML 파일 없음: 검사 생략\"; exit 0; fi; yaml-lint \"${files[@]}\"'",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",

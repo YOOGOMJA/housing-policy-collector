@@ -24,8 +24,9 @@ jobs:
               - 'AGENTS.md'
               - 'claude.md'
               - '.github/**'
-              - '**/*.ts'
-              - 'tsconfig.json'
+              - 'src/**/*.ts'
+              - 'tests/**/*.ts'
+              - 'tsconfig*.json'
               - 'package.json'
               - 'package-lock.json'
               - '**/*.js'
@@ -80,6 +81,27 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: echo "$PR_TITLE" | npm run commitlint:pr-title
+
+  code_typecheck:
+    name: Code typecheck
+    runs-on: ubuntu-latest
+    needs: detect_changes
+    if: needs.detect_changes.outputs.code_changed == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck
+        run: npm run typecheck
 
   docs_yaml_validation:
     name: Docs YAML format & syntax check

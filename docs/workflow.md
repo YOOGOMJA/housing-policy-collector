@@ -79,10 +79,12 @@ PR에는 아래 항목을 반드시 포함합니다.
 
 ```bash
 npm run lint
+npm run typecheck
 npm run build
 ```
 
-- `npm run lint`: ESLint + `@typescript-eslint/*` 규칙 적용 확인
+- `npm run lint`: ESLint + `@typescript-eslint/*` 규칙 적용 확인 (JS/TS/TSX 확장자 검사)
+- `npm run typecheck`: TypeScript 타입 오류를 `--noEmit` 기준으로 검증
 - `npm run build`: `tsconfig.json` 컴파일 기준(`rootDir`, `outDir`, `module`, `target`, `strict`) 검증
 
 ## 5) PR CI 자동 검증 기준
@@ -97,6 +99,8 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
 - **Commit convention check**
   - 실행 명령: `echo "$PR_TITLE" | npm run commitlint:pr-title`
   - 검사 기준: 커밋 스코프 규칙과 동일하게 `#이슈번호` 또는 허용된 도메인 스코프
+- **Code typecheck**
+  - 실행 명령: `npm run typecheck`
 - **Docs YAML format & syntax check**
   - 실행 명령 1: `npm run docs:yaml:format:check`
   - 실행 명령 2: `npm run docs:yaml:lint`
@@ -104,9 +108,9 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
 ### 조건별 실행 규칙
 - 코드 변경(PR에서 아래 패턴 중 하나 이상 변경):
   - `AGENTS.md`, `claude.md`, `.github/**`
-  - `**/*.ts`, `tsconfig.json`, `package.json`, `package-lock.json`
+  - `src/**/*.ts`, `tests/**/*.ts`, `tsconfig*.json`, `package.json`, `package-lock.json`
   - `**/*.js`, `**/*.cjs`, `**/*.mjs`, `**/*.json` (단, `docs/**` 제외)
-  - 실행 Job: `Code lint check` + `Commit convention check`
+  - 실행 Job: `Code lint check` + `Commit convention check` + `Code typecheck`
 - 문서 변경(PR에서 `docs/**/*.yml`, `docs/**/*.yaml` 포함):
   - 실행 Job: `Docs YAML format & syntax check`
 - 일반 문서(`.md`) 변경만 있는 경우:
