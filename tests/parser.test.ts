@@ -23,6 +23,23 @@ test('parse: application_type을 정책 enum으로 정규화한다', () => {
   assert.equal(parsed.log.failure_reason, null);
 });
 
+test('parse: 결합된 자격요건 문구를 필드별로 분리한다', () => {
+  const [parsed] = parse([
+    {
+      announcement_id: 'SH-2026-001-1',
+      source_org: 'SH',
+      application_type_raw: '행복주택(공공임대)',
+      eligibility_rules_raw:
+        '서울시 거주 무주택세대구성원 도시근로자 월평균소득 100% 이하 총자산 3억 6,100만원 이하',
+    },
+  ]);
+
+  assert.equal(parsed.region_requirement, '서울시 거주');
+  assert.equal(parsed.household_requirement, '무주택세대구성원');
+  assert.equal(parsed.income_requirement, '도시근로자 월평균소득 100% 이하');
+  assert.equal(parsed.asset_requirement, '총자산 3억 6,100만원 이하');
+});
+
 test('parse: 필수 필드 누락 시 judgement_grade_cap을 검토필요로 제한한다', () => {
   const [parsed] = parse([
     {
@@ -57,6 +74,7 @@ test('parse: 분류 실패/원문 모호성 사유를 failure metadata로 남긴
   assert.equal(parsed.log.failure_reason, 'MISSING_REQUIRED_FIELD: region_requirement');
   assert.deepEqual(parsed.log.metadata.failure_reasons, [
     'MISSING_REQUIRED_FIELD: region_requirement',
+    'MISSING_REQUIRED_FIELD: household_requirement',
     'UNMAPPED_APPLICATION_TYPE',
     'AMBIGUOUS_RULE_TEXT: interpretation-required',
   ]);
@@ -78,5 +96,21 @@ test('parse: title 기반으로 application_type_raw를 보완 추론한다', ()
 
   assert.equal(parsed.application_type_raw, '행복주택');
   assert.equal(parsed.application_type, 'PUBLIC_RENTAL');
+  assert.equal(parsed.judgement_grade_cap, '확정 가능');
+});
+
+test('parse: application_type_raw가 공백이면 title 기반 추론으로 fallback한다', () => {
+  const [parsed] = parse([
+    {
+      announcement_id: 'LH-2026-150-1',
+      title: '2026-150 전세임대 청년 모집',
+      application_type_raw: '   ',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 70% 이하, 총자산 2억 이하',
+    },
+  ]);
+
+  assert.equal(parsed.application_type_raw, '전세임대');
+  assert.equal(parsed.application_type, 'JEONSE_RENTAL');
   assert.equal(parsed.judgement_grade_cap, '확정 가능');
 });

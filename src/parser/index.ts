@@ -88,20 +88,31 @@ const inferSourceOrg = (announcementId: string): SourceOrg | null => {
   return null;
 };
 
+const normalizeTextOrNull = (value: string | null | undefined): string | null => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
 const inferApplicationTypeRaw = (title?: string): string | null => {
-  if (title === undefined || title.trim().length === 0) {
+  const normalizedTitle = normalizeTextOrNull(title);
+
+  if (normalizedTitle === null) {
     return null;
   }
 
   const matchedRule = APPLICATION_TYPE_RULES.find((rule) =>
-    rule.keywords.some((keyword) => title.includes(keyword)),
+    rule.keywords.some((keyword) => normalizedTitle.includes(keyword)),
   );
 
   if (matchedRule === undefined) {
     return null;
   }
 
-  const keyword = matchedRule.keywords.find((candidate) => title.includes(candidate));
+  const keyword = matchedRule.keywords.find((candidate) => normalizedTitle.includes(candidate));
   return keyword ?? null;
 };
 
@@ -132,6 +143,20 @@ const normalizeApplicationType = (
   };
 };
 
+const splitCompositeClause = (token: string): string[] => {
+  const splitRegex = /(?=무주택|신혼부부|청년|고령자|도시근로자|총자산|(?<!총)자산|자동차)/g;
+  const parts = token
+    .split(splitRegex)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  if (parts.length <= 1) {
+    return [token];
+  }
+
+  return parts;
+};
+
 const tokenizeRules = (eligibilityRulesRaw: string | null): string[] => {
   if (eligibilityRulesRaw === null) {
     return [];
@@ -140,7 +165,8 @@ const tokenizeRules = (eligibilityRulesRaw: string | null): string[] => {
   return eligibilityRulesRaw
     .split(/,\s+|\s*\/\s*|\n/)
     .map((token) => token.trim())
-    .filter((token) => token.length > 0);
+    .filter((token) => token.length > 0)
+    .flatMap((token) => splitCompositeClause(token));
 };
 
 const parseEligibilityRequirement = (
@@ -165,13 +191,13 @@ const parseEligibilityRequirement = (
     region_requirement: pickByKeyword(['서울', '경기', '인천', '거주']),
     household_requirement: pickByKeyword([
       '무주택',
-      '세대',
+      '세대구성원',
       '신혼부부',
       '청년',
       '고령자',
     ]),
     income_requirement: pickByKeyword(['소득']),
-    asset_requirement: pickByKeyword(['자산', '자동차']),
+    asset_requirement: pickByKeyword(['총자산', '자산', '자동차']),
   };
 };
 
@@ -202,9 +228,10 @@ export const parse = (items: Array<string | ParseInputItem>): ParsedItem[] => {
     const input = toParseInputItem(item);
     const announcementId = input.announcement_id;
     const sourceOrg = input.source_org ?? inferSourceOrg(announcementId);
+    const normalizedApplicationTypeRaw = normalizeTextOrNull(input.application_type_raw);
     const applicationTypeRaw =
-      input.application_type_raw ?? inferApplicationTypeRaw(input.title) ?? null;
-    const eligibilityRulesRaw = input.eligibility_rules_raw ?? null;
+      normalizedApplicationTypeRaw ?? inferApplicationTypeRaw(input.title) ?? null;
+    const eligibilityRulesRaw = normalizeTextOrNull(input.eligibility_rules_raw);
 
     const normalizedApplicationType = normalizeApplicationType(applicationTypeRaw);
     const parsedRequirement = parseEligibilityRequirement(eligibilityRulesRaw);

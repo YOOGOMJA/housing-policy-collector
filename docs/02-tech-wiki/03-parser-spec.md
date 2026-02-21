@@ -22,10 +22,12 @@
 - `PURCHASE_RENTAL` : `매입임대`
 - `REDEVELOPMENT_SPECIAL` : `재개발`, `재건축`, `이주대책`, `특별공급`
 - `UNKNOWN` : 상기 키워드 매핑 실패
+- `application_type_raw`가 `null`/빈 문자열/공백 문자열이면 `title` 기반으로 보완 추론 후 정규화
 
 ## 4. 실패/불확실 처리
 - 파싱 실패 시 사유 로깅
 - 필수 필드(`source_org`, `announcement_id`, `application_type_raw`, `eligibility_rules_raw`, `region_requirement`, `household_requirement`, `income_requirement`, `asset_requirement`) 누락 시 판정 등급을 최대 `검토필요`로 제한
+- 결합된 자격요건 문구(예: `서울시 거주 무주택세대구성원`)는 필드별로 분해 후 매핑
 - 유형 분류 실패 시 `application_type=UNKNOWN` + 원문 유지
 - 원문 모호성(조건 해석 불가/충돌) 발견 시 보수적으로 판정 등급 `검토필요` 분기
 - 로그 메타데이터(`log.metadata.failure_reasons`)에 다중 실패 사유를 배열로 누적

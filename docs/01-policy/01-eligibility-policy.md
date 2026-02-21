@@ -14,6 +14,7 @@
 - `PURCHASE_RENTAL` : `매입임대`
 - `REDEVELOPMENT_SPECIAL` : `재개발`, `재건축`, `이주대책`, `특별공급`
 - `UNKNOWN` : 분류 불가(원문 유지 + 수동 검토, `UNMAPPED_APPLICATION_TYPE` 로그 기록)
+- `application_type_raw`가 공백/누락이면 `title` 기반 보완 추론 후 동일 enum 기준으로 정규화
 
 ## 3. SH/LH 공통 판정 항목
 아래 항목을 기준으로 기본 적합도를 계산합니다.
