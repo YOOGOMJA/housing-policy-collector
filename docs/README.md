@@ -91,3 +91,5 @@
   - Open PR 현황, merge conflict 여부, 재작업 우선순위 운영 기록
 - `docs/workflow.md`
   - Ralph 루프(기준 측정→단일 병목 개선→재검증→반복)와 PR 체크리스트 운영 기준
+- `docs/03-operations/06-slack-manual-test-guide.md`
+  - Slack bot 상시 운영 전 수동 단발 실행 테스트 질문 템플릿/예상 응답/프로필 샘플 가이드

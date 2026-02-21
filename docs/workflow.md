@@ -69,6 +69,7 @@ PR에는 아래 항목을 반드시 포함합니다.
 - AI 지침 문서를 추가/수정했다면 `docs/README.md` 인덱스를 함께 업데이트했는가?
 - 정책 문서 변경이 기술/운영 문서에 반영되었는가?
 - 정기 리포트/운영 절차 변경 시 `docs/03-operations/03-scheduled-slack-report-runbook.md` 반영 여부를 확인했는가?
+- Slack 수동 단발 실행 운영 방식이 바뀐 경우 `docs/03-operations/06-slack-manual-test-guide.md`를 갱신했는가?
 - 변경 문서 간 링크/참조 누락이 없는가?
 - 코드 구조 변경 시 `docs/02-tech-wiki/01-architecture.md`의 모듈명과 실제 디렉터리(`src/`)가 1:1인지 확인했는가?
 - POC 완료 판단 기준 변경 시 아래 운영 체크리스트(수집 실패 로그, UNKNOWN 비율, 수동 검토 소요시간)를 함께 갱신했는가?
