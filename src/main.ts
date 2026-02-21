@@ -12,7 +12,11 @@ import { save } from './storage/index.js';
 export type PipelineResult = {
   collected: number;
   parsed: number;
-  saved: number;
+  saved: {
+    created: number;
+    updated: number;
+    skipped: number;
+  };
   notified: number;
 };
 
@@ -25,7 +29,7 @@ export const runPipeline = async (): Promise<PipelineResult> => {
     })),
   );
   const matchedItems = match(parsedItems);
-  const savedCount = save(matchedItems);
+  const savedResult = save(matchedItems);
   const notifiedCount = notify(matchedItems);
 
   if (collectResult.error !== null) {
@@ -37,7 +41,7 @@ export const runPipeline = async (): Promise<PipelineResult> => {
   return {
     collected: collectResult.items.length,
     parsed: parsedItems.length,
-    saved: savedCount,
+    saved: savedResult,
     notified: notifiedCount,
   };
 };
