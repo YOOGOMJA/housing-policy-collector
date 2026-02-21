@@ -89,3 +89,5 @@
   - 이슈 생성 기준과 commit scope 사용 원칙 운영 가이드
 - `docs/03-operations/05-open-pr-conflict-priority-report.md`
   - Open PR 현황, merge conflict 여부, 재작업 우선순위 운영 기록
+- `docs/workflow.md`
+  - Ralph 루프(기준 측정→단일 병목 개선→재검증→반복)와 PR 체크리스트 운영 기준
