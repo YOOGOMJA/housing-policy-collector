@@ -19,7 +19,10 @@ export type PipelineResult = {
 export const runPipeline = async (): Promise<PipelineResult> => {
   const collectResult = await collect();
   const parsedItems = parse(
-    collectResult.items.map((item) => item.announcement_id),
+    collectResult.items.map((item) => ({
+      announcement_id: item.announcement_id,
+      title: item.title,
+    })),
   );
   const matchedItems = match(parsedItems);
   const savedCount = save(matchedItems);

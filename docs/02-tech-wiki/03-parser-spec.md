@@ -13,13 +13,27 @@
 - `eligibility_rules_raw` : 자격요건 원문 블록
 - `region_requirement` / `household_requirement` / `income_requirement` / `asset_requirement`
 
-## 3. 실패/불확실 처리
+## 3. `application_type` 정규화 규칙
+`application_type_raw`를 아래 정책 enum으로 정규화합니다. 매핑 실패 시 `UNKNOWN`으로 처리하고 실패 사유를 로그에 남깁니다.
+
+- `PUBLIC_RENTAL` : `국민임대`, `영구임대`, `행복주택`, `장기전세`, `통합공공임대`, `공공임대`
+- `PUBLIC_SALE` : `공공분양`, `신혼희망타운`, `분양`
+- `JEONSE_RENTAL` : `전세임대`
+- `PURCHASE_RENTAL` : `매입임대`
+- `REDEVELOPMENT_SPECIAL` : `재개발`, `재건축`, `이주대책`, `특별공급`
+- `UNKNOWN` : 상기 키워드 매핑 실패
+- `application_type_raw`가 `null`/빈 문자열/공백 문자열이면 `title` 기반으로 보완 추론 후 정규화
+
+## 4. 실패/불확실 처리
 - 파싱 실패 시 사유 로깅
-- 필수 필드 누락 시 판정 등급을 최대 `검토필요`로 제한
+- 필수 필드(`source_org`, `announcement_id`, `application_type_raw`, `eligibility_rules_raw`, `region_requirement`, `household_requirement`, `income_requirement`, `asset_requirement`) 누락 시 판정 등급을 최대 `검토필요`로 제한
+- 결합된 자격요건 문구(예: `서울시 거주 무주택세대구성원`)는 필드별로 분해 후 매핑
 - 유형 분류 실패 시 `application_type=UNKNOWN` + 원문 유지
 - 원문 모호성(조건 해석 불가/충돌) 발견 시 보수적으로 판정 등급 `검토필요` 분기
+- 로그 메타데이터(`log.metadata.failure_reasons`)에 다중 실패 사유를 배열로 누적
+- 원문 모호성 감지 시 `log.metadata.ambiguous_fragments`에 근거 문구를 함께 저장
 
-## 4. 기관별 입력/출력 예시
+## 5. 기관별 입력/출력 예시
 아래 예시는 SH/LH 원문 일부를 입력으로 받아 파서가 생성해야 하는 JSON 결과(정규화 + 로그)를 정의합니다.
 
 ### 케이스 A. 정상 파싱 (SH, `PUBLIC_RENTAL`)
@@ -50,7 +64,10 @@
   "log": {
     "trace_id": "trace-sh-2026001-a",
     "failure_reason": null,
-    "source_snapshot_ref": "snap:SH:2026-001:v1"
+    "source_snapshot_ref": "snap:SH:2026-001:v1",
+    "metadata": {
+      "failure_reasons": []
+    }
   }
 }
 ```
@@ -84,7 +101,12 @@
   "log": {
     "trace_id": "trace-lh-2026077-b",
     "failure_reason": "MISSING_REQUIRED_FIELD: asset_requirement",
-    "source_snapshot_ref": "snap:LH:2026-77:v3"
+    "source_snapshot_ref": "snap:LH:2026-77:v3",
+    "metadata": {
+      "failure_reasons": [
+        "MISSING_REQUIRED_FIELD: asset_requirement"
+      ]
+    }
   }
 }
 ```
@@ -117,7 +139,12 @@
   "log": {
     "trace_id": "trace-sh-2026sp19-c",
     "failure_reason": "UNMAPPED_APPLICATION_TYPE",
-    "source_snapshot_ref": "snap:SH:2026-SP19:v1"
+    "source_snapshot_ref": "snap:SH:2026-SP19:v1",
+    "metadata": {
+      "failure_reasons": [
+        "UNMAPPED_APPLICATION_TYPE"
+      ]
+    }
   }
 }
 ```
@@ -151,12 +178,17 @@
   "log": {
     "trace_id": "trace-lh-2026re05-d",
     "failure_reason": "AMBIGUOUS_RULE_TEXT: exception-household-review-required",
-    "source_snapshot_ref": "snap:LH:2026-RE05:v2"
+    "source_snapshot_ref": "snap:LH:2026-RE05:v2",
+    "metadata": {
+      "failure_reasons": [
+        "AMBIGUOUS_RULE_TEXT: exception-household-review-required"
+      ]
+    }
   }
 }
 ```
 
-## 5. 정책 문서 연동 규칙
+## 6. 정책 문서 연동 규칙
 - `application_type` enum 변경 시 `docs/01-policy/01-eligibility-policy.md` 동시 업데이트
 - 판정 등급/용어는 정책 문서의 `확정 가능` / `유력` / `검토필요` / `부적합`을 그대로 사용
 - 판정 규칙 변경 시 본 문서의 필드 정의 및 실패 처리 규칙을 동시 검토
