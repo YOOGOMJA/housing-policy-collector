@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import type { DownstreamAnnouncementInput } from "./collector/index.js";
 import { collectAll } from "./collector/index.js";
+import type { MatchedItem } from "./matcher/index.js";
 import type { UserProfile } from "./matcher/index.js";
 import { match } from "./matcher/index.js";
 import { notify } from "./notifier/index.js";
@@ -31,17 +32,14 @@ export type PipelineResult = {
   notified: number;
 };
 
-const hasRequiredFieldsComplete = (item: {
-  region_requirement: string | null;
-  household_requirement: string | null;
-  income_requirement: string | null;
-  asset_requirement: string | null;
-}): boolean => {
+const hasAcceptanceRequiredFieldsComplete = (
+  item: Pick<MatchedItem, "title" | "source_org" | "application_period" | "original_link">,
+): boolean => {
   return (
-    item.region_requirement !== null &&
-    item.household_requirement !== null &&
-    item.income_requirement !== null &&
-    item.asset_requirement !== null
+    item.title.trim().length > 0 &&
+    item.source_org !== null &&
+    item.application_period !== null &&
+    item.original_link !== null
   );
 };
 
@@ -135,16 +133,20 @@ export const runPipeline = async (
     saved_skipped_count: savedResult.skipped,
   });
 
-  const requiredFieldsCompleteCount = matchedItems.filter((item) => {
-    return hasRequiredFieldsComplete(item);
+  const shCollectedSuccessCount = collectResult.by_org.SH.items.length;
+  const shMatchedItems = matchedItems.filter((item) => {
+    return item.source_org === "SH";
+  });
+  const requiredFieldsCompleteCount = shMatchedItems.filter((item) => {
+    return hasAcceptanceRequiredFieldsComplete(item);
   }).length;
-  const reviewNeededCount = matchedItems.filter((item) => {
+  const reviewNeededCount = shMatchedItems.filter((item) => {
     return item.grade === "검토필요";
   }).length;
 
   saveAcceptanceRuntimeMetrics({
     run_id: runId,
-    collected_success_count: collectResult.items.length,
+    collected_success_count: shCollectedSuccessCount,
     required_fields_complete_count: requiredFieldsCompleteCount,
     review_needed_count: reviewNeededCount,
   });
