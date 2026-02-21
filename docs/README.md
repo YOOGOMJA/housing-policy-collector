@@ -29,13 +29,15 @@
     - AI 작업 공통 규칙(문서 동기화/보수적 판단)
 13. `docs/04-ai-instructions/02-subagent-workflow.md`
     - 서브에이전트 순차 실행 계획과 산출물
-14. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
+14. `docs/04-ai-instructions/03-multi-agent-collaboration-rules.md`  
+    - 동시다발 협업 규칙, 소유권, 품질 게이트
+15. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
     - AI 작업 문서의 누락 분석 및 보강 우선순위
-15. `docs/04-ai-instructions/04-context-window-playbook.md`
+16. `docs/04-ai-instructions/04-context-window-playbook.md`
     - 컨텍스트 윈도우 예산/로딩/분할 전략
-16. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
+17. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
     - 프롬프트 템플릿/가드레일/작업 유형별 스캐폴드
-17. `docs/04-ai-instructions/06-agents-md-ops.md`
+18. `docs/04-ai-instructions/06-agents-md-ops.md`
     - AGENTS.md 배치/우선순위/운영 절차
 
 ## B. 작성 순서 (재정렬)
