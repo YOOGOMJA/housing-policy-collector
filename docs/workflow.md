@@ -74,8 +74,17 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
   - 실행 명령 2: `npm run docs:yaml:lint`
 
 ### 조건별 실행 규칙
-- 코드 변경(PR에서 docs 외 파일 변경 포함):
-  - `Code lint check` + `Commit convention check` 실행
+- 코드 변경(`filters.code` 패턴 일치 파일 포함):
+  - 포함 패턴(문자열 기준 동일):
+    - `AGENTS.md`
+    - `claude.md`
+    - `.github/**`
+    - `**/*.js`
+    - `**/*.cjs`
+    - `**/*.mjs`
+    - `**/*.json`
+    - `!docs/**`
+  - 실행 Job: `Code lint check` + `Commit convention check`
 - 문서 변경(PR에서 `docs/**/*.yml`, `docs/**/*.yaml` 포함):
   - `Docs YAML format & syntax check` 실행
 - 일반 문서(`.md`) 변경만 있는 경우:
