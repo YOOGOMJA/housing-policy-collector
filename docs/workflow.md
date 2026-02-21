@@ -91,3 +91,33 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
 3. 커밋 (이슈 번호 스코프 + 바디 요약)
 4. PR 생성 (템플릿 기반)
 5. 리뷰 반영 및 머지
+
+## 6) Remote 연결 가이드 (로컬/에이전트 공통)
+
+PR 충돌 확인이나 브랜치 fetch가 필요할 때는 먼저 Git remote 연결 상태를 점검합니다.
+
+### 기본 점검 명령
+
+```bash
+git remote -v
+git branch -a
+git fetch --all --prune
+```
+
+### remote가 없는 경우
+
+```bash
+git remote add origin https://github.com/YOOGOMJA/housing-policy-collector.git
+git fetch origin
+```
+
+### 연결이 실패할 수 있는 대표 원인
+- 저장소 URL 오타 또는 repository 권한 없음
+- HTTPS 인증 실패(PAT 만료/권한 부족)
+- 조직 정책(SSO, IP allowlist)으로 접근 차단
+- 사내 네트워크/프록시/DNS 문제
+
+### 점검 체크리스트
+- `git ls-remote origin` 명령이 정상 응답하는지 확인
+- `git fetch origin` 실행 시 인증 프롬프트/에러 메시지 확인
+- private repository인 경우 PAT scope(`repo`) 및 SSO 승인 상태 확인
