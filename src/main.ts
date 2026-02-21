@@ -9,6 +9,7 @@ import { notify } from './notifier/index.js';
 import { parse } from './parser/index.js';
 import { save } from './storage/index.js';
 
+/** 런타임 파이프라인 결과. (테스트용 acceptance 집계는 src/metrics/acceptance.ts에서 분리 관리) */
 export type PipelineResult = {
   collected: number;
   parsed: number;

@@ -72,3 +72,11 @@
 - 판정 근거 추적을 위해 `source_snapshot_ref`를 함께 저장합니다.
 - 현재 기본 구현은 in-memory adapter이며, SQLite/Postgres 전환 시 `src/storage` 내부 adapter만 교체하는 것을 원칙으로 합니다.
 
+
+
+## Acceptance evaluator (테스트 전용 집계)
+
+- 운영 런타임 결과 타입은 `src/main.ts`의 `PipelineResult`를 사용합니다.
+- POC acceptance 판정용 집계/수식은 테스트 전용 모듈 `src/metrics/acceptance.ts`에 분리합니다.
+- 테스트 진입점은 `tests/acceptance-metrics.test.ts`이며, 연속 5회 배치 샘플을 입력받아 PASS/FAIL을 반환합니다.
+- 기준 수식은 `docs/00-product/03-scope-release-plan.md`의 Acceptance Criteria를 코드 수식으로 고정합니다.

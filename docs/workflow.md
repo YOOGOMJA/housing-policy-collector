@@ -100,6 +100,13 @@ npm run build
 - `npm run typecheck`: TypeScript 타입 오류를 `--noEmit` 기준으로 검증
 - `npm run build`: `tsconfig.json` 컴파일 기준(`rootDir`, `outDir`, `module`, `target`, `strict`) 검증
 
+
+### Acceptance evaluator 실행 기준
+
+- POC 완료 Acceptance Criteria(연속 5회 배치, 수집 성공률/필수 필드 추출률/검토필요 분기율)는 `src/metrics/acceptance.ts`에서 계산합니다.
+- 검증 테스트는 `tests/acceptance-metrics.test.ts`로 관리하며, 전체 테스트 실행(`npm run test`) 시 함께 검증됩니다.
+- 실패 시 assertion 메시지는 `[ACCEPTANCE_FAIL] run=<회차> metric=<지표명> actual=<실측값> threshold=<기준값> formula=<계산식>` 형식으로 표준화합니다.
+
 ## 5) PR CI 자동 검증 기준
 
 PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행됩니다.
