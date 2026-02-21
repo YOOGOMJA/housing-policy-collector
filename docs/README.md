@@ -39,5 +39,6 @@
 
 ## C. 운영 규칙
 - 정책 문서 변경 시 기술 문서를 같은 커밋에서 동기화합니다.
+- SH/LH 청약 유형(application_type) 변경 시 `01-policy/01-eligibility-policy.md`와 `02-tech-wiki/03-parser-spec.md`를 함께 갱신합니다.
 - 파싱 불확실성은 자동으로 `검토필요`로 분류합니다.
 - 개인정보 원문 로그는 금지합니다.
