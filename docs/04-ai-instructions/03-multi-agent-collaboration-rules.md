@@ -102,8 +102,10 @@
 - 기준 브랜치 이름은 `main`을 표준으로 사용하고, 저장소에 `main`이 없으면 PM/PO가 메인라인 브랜치를 명시합니다(예: `work`).
 - 병합 전 절차:
   1. `git fetch --all --prune`
-  2. `git checkout <작업브랜치>`
-  3. `git merge --no-ff origin/main` 또는 메인라인 브랜치 병합
+  2. `MAINLINE_REF=${MAINLINE_REF:-$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's#^origin/##')}`
+     - 위 명령이 비어 있으면 `MAINLINE_REF`를 수동으로 지정합니다(예: `MAINLINE_REF=work`).
+  3. `git checkout <작업브랜치>`
+  4. `git merge --no-ff origin/${MAINLINE_REF}`
 - 충돌 발생 시 절차:
   1. `git status`로 충돌 파일 식별
   2. 정책/개인정보/계약 문서를 우선 해소
