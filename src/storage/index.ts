@@ -1,9 +1,9 @@
 /** Storage 모듈. */
 
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
 
 import type { MatchedItem } from "../matcher/index.js";
-import { SQLiteStorageAdapter } from "./sqlite-adapter.js";
 
 export type SaveResult = {
   created: number;
@@ -152,6 +152,7 @@ class InMemoryStorageAdapter implements StorageAdapter {
 }
 
 let storageAdapter: StorageAdapter = new InMemoryStorageAdapter();
+const require = createRequire(import.meta.url);
 
 export const setStorageAdapter = (adapter: StorageAdapter): void => {
   storageAdapter = adapter;
@@ -162,6 +163,10 @@ export const resetStorageAdapter = (): void => {
 };
 
 export const setSQLiteStorageAdapter = (dbPath: string): void => {
+  const { SQLiteStorageAdapter } = require("./sqlite-adapter.js") as {
+    SQLiteStorageAdapter: new (path: string) => StorageAdapter;
+  };
+
   storageAdapter = new SQLiteStorageAdapter(dbPath);
 };
 
