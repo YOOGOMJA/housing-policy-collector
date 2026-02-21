@@ -39,6 +39,7 @@ npm run build
 ## 문서 시작점
 - 전체 문서 인덱스: `docs/README.md`
 - 정기 Slack 리포트 운영 기준: `docs/03-operations/03-scheduled-slack-report-runbook.md`
+- Slack 연동 전 단발 실행 테스트 가이드: `docs/03-operations/06-slack-manual-test-guide.md`
 - 에이전트 운영 규칙: `AGENTS.md`
 - 커밋 스코프 운영 가이드: `docs/03-operations/04-commit-scope-governance.md`
 - Open PR 충돌/우선순위 기록: `docs/03-operations/05-open-pr-conflict-priority-report.md`
