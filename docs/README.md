@@ -26,19 +26,21 @@
     - 모니터링 지표, 목표 지연시간(SLA)
 11. `docs/03-operations/02-incident-response.md`
     - 장애 분류, 대응 절차, 복구 체크리스트
-12. `docs/04-ai-instructions/01-agent-guidelines.md`
+12. `docs/03-operations/04-commit-scope-governance.md`
+    - 이슈 생성 기준, commit scope 사용 원칙, 도메인 스코프 목록
+13. `docs/04-ai-instructions/01-agent-guidelines.md`
     - AI 작업 공통 규칙(문서 동기화/보수적 판단)
-13. `docs/04-ai-instructions/02-subagent-workflow.md`
+14. `docs/04-ai-instructions/02-subagent-workflow.md`
     - 서브에이전트 순차 실행 계획과 산출물
-14. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
+15. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
     - AI 작업 문서의 누락 분석 및 보강 우선순위
-15. `docs/04-ai-instructions/03-multi-agent-collaboration-rules.md`
+16. `docs/04-ai-instructions/03-multi-agent-collaboration-rules.md`
     - 동시다발 협업 규칙, 소유권, 품질 게이트
-16. `docs/04-ai-instructions/04-context-window-playbook.md`
+17. `docs/04-ai-instructions/04-context-window-playbook.md`
     - 컨텍스트 윈도우 예산/로딩/분할 전략
-17. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
+18. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
     - 프롬프트 템플릿/가드레일/작업 유형별 스캐폴드
-18. `docs/04-ai-instructions/06-agents-md-ops.md`
+19. `docs/04-ai-instructions/06-agents-md-ops.md`
     - AGENTS.md 배치/우선순위/운영 절차
 
 ## B. 작성 순서 (재정렬)
@@ -53,13 +55,14 @@
 9. 파서규격
 10. 모니터링SLA
 11. 장애대응
-12. AI 가이드
-13. 서브에이전트 워크플로우
-14. AI 문서 갭 분석
-15. 멀티에이전트 협업 규칙
-16. 컨텍스트 플레이북
-17. 프롬프트 플레이북
-18. AGENTS 운영
+12. 커밋 스코프 운영
+13. AI 가이드
+14. 서브에이전트 워크플로우
+15. AI 문서 갭 분석
+16. 멀티에이전트 협업 규칙
+17. 컨텍스트 플레이북
+18. 프롬프트 플레이북
+19. AGENTS 운영
 
 ## C. 운영 규칙
 - 정책 문서 변경 시 기술 문서를 같은 커밋에서 동기화합니다.
@@ -80,3 +83,5 @@
 - `docs/03-operations/03-scheduled-slack-report-runbook.md`
   - 정기 Slack bot 리포트 항목/주기/실패 대응 Runbook
   - 기존 필수 문서 항번 체계를 유지하여 main 변경과의 병합 충돌 가능성을 줄입니다.
+- `docs/03-operations/04-commit-scope-governance.md`
+  - 이슈 생성 기준과 commit scope 사용 원칙 운영 가이드
