@@ -1,7 +1,11 @@
 /** Collector 모듈. */
 
+export type SourceOrg = 'SH' | 'LH';
+
 const SH_POC_BOARD_URL =
   'https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_247/list.do?multi_itm_seq=0';
+const LH_POC_BOARD_URL =
+  'https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancList.do?mi=1026';
 const DEFAULT_RECENT_LIMIT = 10;
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -17,7 +21,8 @@ export type CollectorErrorMeta = {
   status?: number;
 };
 
-export type ShAnnouncement = {
+export type CollectedAnnouncement = {
+  source_org: SourceOrg;
   announcement_id: string;
   title: string;
   detail_url: string;
@@ -26,17 +31,23 @@ export type ShAnnouncement = {
 
 /** 후속 모듈(파서/매처/저장소) 공통 입력 타입. */
 export type DownstreamAnnouncementInput = Pick<
-  ShAnnouncement,
-  'announcement_id' | 'title' | 'detail_url' | 'posted_at'
-> & {
-  source_org: 'SH';
+  CollectedAnnouncement,
+  'announcement_id' | 'title' | 'detail_url' | 'posted_at' | 'source_org'
+>;
+
+export type OrgCollectResult = {
+  source_org: SourceOrg;
+  source_url: string;
+  requested_limit: number;
+  items: CollectedAnnouncement[];
+  error: CollectorErrorMeta | null;
 };
 
 export type CollectResult = {
-  source_url: string;
   requested_limit: number;
-  items: ShAnnouncement[];
-  error: CollectorErrorMeta | null;
+  items: CollectedAnnouncement[];
+  by_org: Record<SourceOrg, OrgCollectResult>;
+  has_partial_failure: boolean;
 };
 
 export type CollectOptions = {
@@ -67,21 +78,28 @@ const extractRecruitRound = (value: string): string => {
   return roundMatch?.[1] ?? '1';
 };
 
-const buildAnnouncementId = (rawText: string): string => {
+/** SH announcement_id 규칙: SH-{공고번호(YYYY-NNN)}-{차수}. */
+const buildShAnnouncementId = (rawText: string): string => {
   const noticeNumber = extractNoticeNumber(rawText);
   const recruitRound = extractRecruitRound(rawText);
   return `SH-${noticeNumber}-${recruitRound}`;
 };
 
-const normalizeDetailUrl = (href: string): string => {
+/** LH announcement_id 규칙: LH-{공고번호(YYYY-NNN)}-{행순번(2자리)}. */
+const buildLhAnnouncementId = (rawText: string, rowIndex: number): string => {
+  const noticeNumber = extractNoticeNumber(rawText);
+  return `LH-${noticeNumber}-${String(rowIndex + 1).padStart(2, '0')}`;
+};
+
+const normalizeDetailUrl = (href: string, baseUrl: string): string => {
   if (href.length === 0) {
-    return SH_POC_BOARD_URL;
+    return baseUrl;
   }
 
   try {
-    return new URL(href, SH_POC_BOARD_URL).toString();
+    return new URL(href, baseUrl).toString();
   } catch {
-    return SH_POC_BOARD_URL;
+    return baseUrl;
   }
 };
 
@@ -90,12 +108,20 @@ const parsePostedAt = (rowText: string): string => {
   return dateMatch?.[0].replace(/\./g, '-') ?? '';
 };
 
-const parseShBoard = (html: string, recentLimit: number): ShAnnouncement[] => {
+const parseBoard = (
+  html: string,
+  options: {
+    sourceOrg: SourceOrg;
+    sourceUrl: string;
+    recentLimit: number;
+    buildAnnouncementId: (rawText: string, rowIndex: number) => string;
+  },
+): CollectedAnnouncement[] => {
   const rowBlocks = html.match(/<tr[\s\S]*?<\/tr>/gi) ?? [];
-  const items: ShAnnouncement[] = [];
+  const items: CollectedAnnouncement[] = [];
 
   for (const rowBlock of rowBlocks) {
-    if (items.length >= recentLimit) {
+    if (items.length >= options.recentLimit) {
       break;
     }
 
@@ -113,9 +139,10 @@ const parseShBoard = (html: string, recentLimit: number): ShAnnouncement[] => {
 
     const rowText = stripHtml(rowBlock);
     items.push({
-      announcement_id: buildAnnouncementId(`${title} ${rowText}`),
+      source_org: options.sourceOrg,
+      announcement_id: options.buildAnnouncementId(`${title} ${rowText}`, items.length),
       title,
-      detail_url: normalizeDetailUrl(rawHref),
+      detail_url: normalizeDetailUrl(rawHref, options.sourceUrl),
       posted_at: parsePostedAt(rowText),
     });
   }
@@ -123,13 +150,16 @@ const parseShBoard = (html: string, recentLimit: number): ShAnnouncement[] => {
   return items;
 };
 
-export const collect = async (
+const fetchBoard = async (
+  sourceOrg: SourceOrg,
+  sourceUrl: string,
   options: CollectOptions = {},
-): Promise<CollectResult> => {
+  buildAnnouncementId: (rawText: string, rowIndex: number) => string,
+): Promise<OrgCollectResult> => {
   const requestedLimit = options.recentLimit ?? DEFAULT_RECENT_LIMIT;
 
   try {
-    const response = await fetch(SH_POC_BOARD_URL, {
+    const response = await fetch(sourceUrl, {
       headers: {
         'User-Agent': 'housing-policy-collector/1.0',
       },
@@ -138,36 +168,44 @@ export const collect = async (
 
     if (!response.ok) {
       return {
-        source_url: SH_POC_BOARD_URL,
+        source_org: sourceOrg,
+        source_url: sourceUrl,
         requested_limit: requestedLimit,
         items: [],
         error: {
           code: 'BAD_STATUS_CODE',
-          message: `SH board 요청 실패(status=${response.status})`,
-          targetUrl: SH_POC_BOARD_URL,
+          message: `${sourceOrg} board 요청 실패(status=${response.status})`,
+          targetUrl: sourceUrl,
           status: response.status,
         },
       };
     }
 
     const html = await response.text();
-    const items = parseShBoard(html, requestedLimit);
+    const items = parseBoard(html, {
+      sourceOrg,
+      sourceUrl,
+      recentLimit: requestedLimit,
+      buildAnnouncementId,
+    });
 
     if (items.length === 0) {
       return {
-        source_url: SH_POC_BOARD_URL,
+        source_org: sourceOrg,
+        source_url: sourceUrl,
         requested_limit: requestedLimit,
         items,
         error: {
           code: 'PARSE_ERROR',
-          message: 'SH board HTML에서 공고 항목을 찾지 못했습니다.',
-          targetUrl: SH_POC_BOARD_URL,
+          message: `${sourceOrg} board HTML에서 공고 항목을 찾지 못했습니다.`,
+          targetUrl: sourceUrl,
         },
       };
     }
 
     return {
-      source_url: SH_POC_BOARD_URL,
+      source_org: sourceOrg,
+      source_url: sourceUrl,
       requested_limit: requestedLimit,
       items,
       error: null,
@@ -176,14 +214,42 @@ export const collect = async (
     const message = error instanceof Error ? error.message : '알 수 없는 오류';
 
     return {
-      source_url: SH_POC_BOARD_URL,
+      source_org: sourceOrg,
+      source_url: sourceUrl,
       requested_limit: requestedLimit,
       items: [],
       error: {
         code: 'NETWORK_ERROR',
         message,
-        targetUrl: SH_POC_BOARD_URL,
+        targetUrl: sourceUrl,
       },
     };
   }
 };
+
+export const collectSh = async (options: CollectOptions = {}): Promise<OrgCollectResult> => {
+  return fetchBoard('SH', SH_POC_BOARD_URL, options, (rawText) => buildShAnnouncementId(rawText));
+};
+
+export const collectLh = async (options: CollectOptions = {}): Promise<OrgCollectResult> => {
+  return fetchBoard('LH', LH_POC_BOARD_URL, options, (rawText, rowIndex) =>
+    buildLhAnnouncementId(rawText, rowIndex),
+  );
+};
+
+export const collectAll = async (options: CollectOptions = {}): Promise<CollectResult> => {
+  const [shResult, lhResult] = await Promise.all([collectSh(options), collectLh(options)]);
+  const items = [...shResult.items, ...lhResult.items];
+
+  return {
+    requested_limit: options.recentLimit ?? DEFAULT_RECENT_LIMIT,
+    items,
+    by_org: {
+      SH: shResult,
+      LH: lhResult,
+    },
+    has_partial_failure: [shResult.error, lhResult.error].some((error) => error !== null),
+  };
+};
+
+export const collect = collectAll;

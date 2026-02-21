@@ -10,19 +10,26 @@ test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 �
 
   const logs: string[] = [];
 
-  globalThis.fetch = async () =>
-    new Response(
-      `
-      <table>
-        <tr>
-          <td>1</td>
-          <td><a href="/notice/10">2026-010 1차 청년주택 모집</a></td>
-          <td>2026.04.01</td>
-        </tr>
-      </table>
-      `,
-      { status: 200 },
-    );
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+
+    if (url.includes('i-sh.co.kr')) {
+      return new Response(
+        `
+        <table>
+          <tr>
+            <td>1</td>
+            <td><a href="/notice/10">2026-010 1차 청년주택 모집</a></td>
+            <td>2026.04.01</td>
+          </tr>
+        </table>
+        `,
+        { status: 200 },
+      );
+    }
+
+    throw new Error('lh fetch failed');
+  };
 
   console.log = (message?: unknown): void => {
     logs.push(String(message));
