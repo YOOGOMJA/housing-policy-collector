@@ -25,28 +25,26 @@
     - 모니터링 지표, 목표 지연시간(SLA)
 11. `docs/03-operations/02-incident-response.md`
     - 장애 분류, 대응 절차, 복구 체크리스트
-12. `docs/03-operations/03-scheduled-slack-report-runbook.md`
-    - 정기 Slack bot 리포트 항목/주기/실패 대응 Runbook
-13. `docs/04-ai-instructions/01-agent-guidelines.md`
+12. `docs/04-ai-instructions/01-agent-guidelines.md`
     - AI 작업 공통 규칙(문서 동기화/보수적 판단)
-14. `docs/04-ai-instructions/02-subagent-workflow.md`
+13. `docs/04-ai-instructions/02-subagent-workflow.md`
     - 서브에이전트 순차 실행 계획과 산출물
-15. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
+14. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
     - AI 작업 문서의 누락 분석 및 보강 우선순위
-16. `docs/04-ai-instructions/04-context-window-playbook.md`
+15. `docs/04-ai-instructions/04-context-window-playbook.md`
     - 컨텍스트 윈도우 예산/로딩/분할 전략
-17. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
+16. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
     - 프롬프트 템플릿/가드레일/작업 유형별 스캐폴드
-18. `docs/04-ai-instructions/06-agents-md-ops.md`
+17. `docs/04-ai-instructions/06-agents-md-ops.md`
     - AGENTS.md 배치/우선순위/운영 절차
 
 ## B. 작성 순서 (재정렬)
 1) 문제정의 → 2) 요구사항 → 3) 범위/릴리즈
 4) 판정정책 → 5) 개인정보정책 → 6) 알림정책
 7) 아키텍처 → 8) 데이터모델 → 9) 파서규격
-10) 모니터링SLA → 11) 장애대응 → 12) 정기 Slack 리포트 Runbook
-13) AI 가이드 → 14) 서브에이전트 워크플로우
-15) AI 문서 갭 분석 → 16) 컨텍스트 플레이북 → 17) 프롬프트 플레이북 → 18) AGENTS 운영
+10) 모니터링SLA → 11) 장애대응
+12) AI 가이드 → 13) 서브에이전트 워크플로우
+14) AI 문서 갭 분석 → 15) 컨텍스트 플레이북 → 16) 프롬프트 플레이북 → 17) AGENTS 운영
 
 ## C. 운영 규칙
 - 정책 문서 변경 시 기술 문서를 같은 커밋에서 동기화합니다.
@@ -56,9 +54,13 @@
 - AI 지침 문서 추가/변경 시 문서 인덱스와 워크플로우 문서를 함께 점검합니다.
 - 정기 리포트 정책 변경 시 `03-operations/03-scheduled-slack-report-runbook.md`와 `01-policy/03-notification-policy.md`를 함께 점검합니다.
 
-
 ## D. 루트 에이전트 운영 문서
 - `AGENTS.md`
   - 저장소 전역 에이전트 작업 규칙(우선순위/검증/커밋·PR 원칙)
 - `claude.md`
   - Claude 작업 입력 템플릿, 컨텍스트 운용, 프롬프트 체크리스트
+
+## E. 운영 보강 문서 (충돌 완화용 분리 항목)
+- `docs/03-operations/03-scheduled-slack-report-runbook.md`
+  - 정기 Slack bot 리포트 항목/주기/실패 대응 Runbook
+  - 기존 필수 문서 항번 체계를 유지하여 main 변경과의 병합 충돌 가능성을 줄입니다.
