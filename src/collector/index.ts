@@ -120,7 +120,7 @@ const parseBoard = (
   const rowBlocks = html.match(/<tr[\s\S]*?<\/tr>/gi) ?? [];
   const items: CollectedAnnouncement[] = [];
 
-  for (const rowBlock of rowBlocks) {
+  for (const [rowIndex, rowBlock] of rowBlocks.entries()) {
     if (items.length >= options.recentLimit) {
       break;
     }
@@ -140,7 +140,7 @@ const parseBoard = (
     const rowText = stripHtml(rowBlock);
     items.push({
       source_org: options.sourceOrg,
-      announcement_id: options.buildAnnouncementId(`${title} ${rowText}`, items.length),
+      announcement_id: options.buildAnnouncementId(`${title} ${rowText}`, rowIndex),
       title,
       detail_url: normalizeDetailUrl(rawHref, options.sourceUrl),
       posted_at: parsePostedAt(rowText),

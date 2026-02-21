@@ -173,6 +173,46 @@ test('collectLh fixture: 정상 케이스에서 LH 공고를 파싱한다', asyn
   }
 });
 
+
+
+test('collectLh fixture: 중간 행 스킵이 있어도 announcement_id 행순번을 유지한다', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    createFetchResponse(
+      200,
+      `
+      <table>
+        <tr>
+          <td>1</td>
+          <td><a href="/lh/notice/20">2026-030 1차 공고</a></td>
+          <td>2026.05.01</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>링크 누락 행</td>
+          <td>2026.05.02</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><a href="/lh/notice/22">2026-032 1차 공고</a></td>
+          <td>2026.05.03</td>
+        </tr>
+      </table>
+      `,
+    );
+
+  try {
+    const result = await collectLh({ recentLimit: 3 });
+
+    assert.equal(result.error, null);
+    assert.equal(result.items.length, 2);
+    assert.equal(result.items[0]?.announcement_id, 'LH-2026-030-01');
+    assert.equal(result.items[1]?.announcement_id, 'LH-2026-032-03');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('collectLh fixture: 파싱 실패 케이스를 PARSE_ERROR로 반환한다', async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
