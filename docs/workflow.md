@@ -71,6 +71,8 @@ PR에는 아래 항목을 반드시 포함합니다.
 - 정기 리포트/운영 절차 변경 시 `docs/03-operations/03-scheduled-slack-report-runbook.md` 반영 여부를 확인했는가?
 - 변경 문서 간 링크/참조 누락이 없는가?
 - 코드 구조 변경 시 `docs/02-tech-wiki/01-architecture.md`의 모듈명과 실제 디렉터리(`src/`)가 1:1인지 확인했는가?
+- Closed PR head 브랜치 정리 작업 시 `docs/03-operations/05-pr-freeze-branch-lifecycle.md`에 따라 삭제/보존/예외를 분류했는가?
+- 브랜치 정리 결과를 PR 동결 문서(또는 PR 본문 freeze 섹션)에 기록했는가?
 
 ## 4) PR CI 자동 검증 기준
 
