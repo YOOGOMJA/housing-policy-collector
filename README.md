@@ -3,11 +3,11 @@
 SH/LH 청약 공고를 개인 조건에 맞춰 선별하고 알림을 보내는 1인 사용자용 프로젝트입니다.
 
 ## 실행 스택
-- 단일 실행 스택: **Node.js 20+ + TypeScript**
+- 런타임: **Node.js 20+**
+- 언어/빌드: **TypeScript (`tsc`)**
 - 프로젝트 설정 파일: `package.json`, `tsconfig.json`
 - 앱 시작점: `src/main.ts`
 - 배치 시작점: `src/batch_main.ts`
-- Python 전환 상태: `pyproject.toml`은 제거되어 현재 런타임/빌드 경로는 TypeScript만 사용합니다.
 
 ## 빠른 실행
 ```bash
@@ -15,6 +15,10 @@ npm run dev
 npm run start
 npm run start:batch
 ```
+
+- `npm run dev`: `src/main.ts` 개발 실행
+- `npm run start`: 빌드 결과 기준 앱 실행(`src/main.ts`)
+- `npm run start:batch`: 빌드 결과 기준 배치 실행(`src/batch_main.ts`)
 
 ## 빌드/운영 실행
 ```bash
