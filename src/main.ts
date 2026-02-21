@@ -1,21 +1,24 @@
 /** 애플리케이션 시작점. */
 
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import type { DownstreamAnnouncementInput } from './collector/index.js';
-import { collectAll } from './collector/index.js';
-import type { UserProfile } from './matcher/index.js';
-import { match } from './matcher/index.js';
-import { notify } from './notifier/index.js';
-import { parse } from './parser/index.js';
-import { save } from './storage/index.js';
+import type { DownstreamAnnouncementInput } from "./collector/index.js";
+import { collectAll } from "./collector/index.js";
+import type { UserProfile } from "./matcher/index.js";
+import { match } from "./matcher/index.js";
+import { notify } from "./notifier/index.js";
+import { parse } from "./parser/index.js";
+import { save, saveBatchRunHistory } from "./storage/index.js";
 
 /** 런타임 파이프라인 결과. (테스트용 acceptance 집계는 src/metrics/acceptance.ts에서 분리 관리) */
 export type PipelineResult = {
+  runId: string;
   collected: number;
   parsed: number;
+  matched: number;
   saved: {
     created: number;
     updated: number;
@@ -24,14 +27,21 @@ export type PipelineResult = {
   notified: number;
 };
 
-const parseNonEmptyProfileField = (value: unknown, fieldName: keyof UserProfile): string => {
-  if (typeof value !== 'string') {
-    throw new Error(`invalid UserProfile: ${fieldName} must be non-empty string`);
+const parseNonEmptyProfileField = (
+  value: unknown,
+  fieldName: keyof UserProfile,
+): string => {
+  if (typeof value !== "string") {
+    throw new Error(
+      `invalid UserProfile: ${fieldName} must be non-empty string`,
+    );
   }
 
   const normalized = value.trim();
   if (normalized.length === 0) {
-    throw new Error(`invalid UserProfile: ${fieldName} must be non-empty string`);
+    throw new Error(
+      `invalid UserProfile: ${fieldName} must be non-empty string`,
+    );
   }
 
   return normalized;
@@ -41,40 +51,44 @@ const parseUserProfile = (raw: string): UserProfile => {
   const parsed = JSON.parse(raw) as Partial<UserProfile>;
 
   return {
-    region: parseNonEmptyProfileField(parsed.region, 'region'),
-    incomeBand: parseNonEmptyProfileField(parsed.incomeBand, 'incomeBand'),
-    assetBand: parseNonEmptyProfileField(parsed.assetBand, 'assetBand'),
-    householdType: parseNonEmptyProfileField(parsed.householdType, 'householdType'),
+    region: parseNonEmptyProfileField(parsed.region, "region"),
+    incomeBand: parseNonEmptyProfileField(parsed.incomeBand, "incomeBand"),
+    assetBand: parseNonEmptyProfileField(parsed.assetBand, "assetBand"),
+    householdType: parseNonEmptyProfileField(
+      parsed.householdType,
+      "householdType",
+    ),
   };
 };
 
 export const resolveUserProfileFromArgs = async (
   argv: string[] = process.argv,
 ): Promise<UserProfile | undefined> => {
-  const profileJsonArgIndex = argv.indexOf('--profile-json');
+  const profileJsonArgIndex = argv.indexOf("--profile-json");
   if (profileJsonArgIndex >= 0 && argv[profileJsonArgIndex + 1] !== undefined) {
     return parseUserProfile(argv[profileJsonArgIndex + 1]);
   }
 
-  const profileFileArgIndex = argv.indexOf('--profile-file');
+  const profileFileArgIndex = argv.indexOf("--profile-file");
   if (profileFileArgIndex >= 0 && argv[profileFileArgIndex + 1] !== undefined) {
     const filePath = resolve(argv[profileFileArgIndex + 1]);
-    const fileContent = await readFile(filePath, 'utf8');
+    const fileContent = await readFile(filePath, "utf8");
     return parseUserProfile(fileContent);
   }
 
   return undefined;
 };
 
-export const runPipeline = async (profile?: UserProfile): Promise<PipelineResult> => {
+export const runPipeline = async (
+  profile?: UserProfile,
+): Promise<PipelineResult> => {
+  const runId = randomUUID();
   const collectResult = await collectAll();
-  const parseInputItems: DownstreamAnnouncementInput[] = Object.values(collectResult.by_org).flatMap(
-    (orgResult) => orgResult.items,
-  );
+  const parseInputItems: DownstreamAnnouncementInput[] = Object.values(
+    collectResult.by_org,
+  ).flatMap((orgResult) => orgResult.items);
 
-  const parsedItems = parse(
-    parseInputItems,
-  );
+  const parsedItems = parse(parseInputItems);
   const matchedItems = match(parsedItems, profile);
   const savedResult = save(matchedItems);
   const profileId =
@@ -85,15 +99,31 @@ export const runPipeline = async (profile?: UserProfile): Promise<PipelineResult
 
   for (const orgResult of Object.values(collectResult.by_org)) {
     if (orgResult.error !== null) {
-      console.warn(`collector warning(${orgResult.error.code}): ${orgResult.error.message}`);
+      console.warn(
+        `collector warning(${orgResult.error.code}): ${orgResult.error.message}`,
+      );
     }
   }
 
+  saveBatchRunHistory({
+    run_id: runId,
+    profile_id: profileId,
+    collected_count: collectResult.items.length,
+    parsed_count: parsedItems.length,
+    matched_count: matchedItems.length,
+    notified_count: notifiedCount,
+    saved_created_count: savedResult.created,
+    saved_updated_count: savedResult.updated,
+    saved_skipped_count: savedResult.skipped,
+  });
+
   return {
+    runId,
     collected: collectResult.items.length,
     parsed: parsedItems.length,
     saved: savedResult,
     notified: notifiedCount,
+    matched: matchedItems.length,
   };
 };
 
