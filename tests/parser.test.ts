@@ -3,6 +3,9 @@ import test from 'node:test';
 
 import { parse } from '../src/parser/index.js';
 
+const SH_COLLECTOR_LIST_URL =
+  'https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_247/list.do?multi_itm_seq=0';
+
 const isCompleteRequiredField = (item: {
   title: string;
   source_org: 'SH' | 'LH' | null;
@@ -160,7 +163,7 @@ test('parse fixture: 필수 필드 추출률 분자/분모 계산이 가능하�
       announcement_id: 'SH-2026-202-1',
       title: '2026-202 행복주택 모집',
       source_org: 'SH',
-      detail_url: '   ',
+      detail_url: SH_COLLECTOR_LIST_URL,
       posted_at: '2026-04-02',
       application_type_raw: '행복주택',
       eligibility_rules_raw:
@@ -180,4 +183,22 @@ test('parse fixture: 필수 필드 추출률 분자/분모 계산이 가능하�
 
   assert.equal(denominator, 2);
   assert.equal(numerator, 1);
+});
+
+test('parse: collector fallback list URL은 original_link를 null로 정규화한다', () => {
+  const [parsed] = parse([
+    {
+      announcement_id: 'SH-2026-301-1',
+      title: '2026-301 행복주택 모집',
+      source_org: 'SH',
+      detail_url: SH_COLLECTOR_LIST_URL,
+      posted_at: '2026-05-01',
+      application_type_raw: '행복주택',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 100% 이하, 총자산 3억 이하',
+    },
+  ]);
+
+  assert.equal(parsed.original_link, null);
+  assert.equal(parsed.application_period, '2026-05-01');
 });

@@ -18,6 +18,7 @@
 
 ### 2.1 null 처리 규칙 (측정용 필드)
 - `ParseInputItem.detail_url`/`ParseInputItem.posted_at`가 `undefined`/`null`/공백 문자열이면 `ParsedItem.original_link`/`ParsedItem.application_period`는 `null`로 저장
+- `ParseInputItem.detail_url`가 SH collector fallback list URL(`https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_247/list.do?multi_itm_seq=0`)이면 상세 원문 링크 부재로 간주하고 `ParsedItem.original_link`를 `null`로 저장
 - 공백 제거 후 값이 남으면 원문 문자열을 그대로 저장(추가 포맷 변환 없음)
 
 ## 3. `application_type` 정규화 규칙

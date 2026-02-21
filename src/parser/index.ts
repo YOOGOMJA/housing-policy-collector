@@ -83,6 +83,8 @@ const APPLICATION_TYPE_RULES: Array<{
 ];
 
 const AMBIGUOUS_RULE_KEYWORDS = ['추후', '별도', '상이', '참조', '예외', '추가 안내'];
+const SH_COLLECTOR_LIST_URL =
+  'https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_247/list.do?multi_itm_seq=0';
 
 const inferSourceOrg = (announcementId: string): SourceOrg | null => {
   if (announcementId.startsWith('SH-')) {
@@ -103,6 +105,31 @@ const normalizeTextOrNull = (value: string | null | undefined): string | null =>
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+};
+
+const normalizeOriginalLinkOrNull = (value: string | null | undefined): string | null => {
+  const normalized = normalizeTextOrNull(value);
+
+  if (normalized === null) {
+    return null;
+  }
+
+  try {
+    const normalizedUrl = new URL(normalized);
+    const fallbackUrl = new URL(SH_COLLECTOR_LIST_URL);
+
+    if (
+      normalizedUrl.origin === fallbackUrl.origin &&
+      normalizedUrl.pathname === fallbackUrl.pathname &&
+      normalizedUrl.search === fallbackUrl.search
+    ) {
+      return null;
+    }
+  } catch {
+    return normalized;
+  }
+
+  return normalized;
 };
 
 const inferApplicationTypeRaw = (title?: string): string | null => {
@@ -236,7 +263,7 @@ export const parse = (items: Array<string | ParseInputItem>): ParsedItem[] => {
     const input = toParseInputItem(item);
     const announcementId = input.announcement_id;
     const sourceOrg = input.source_org ?? inferSourceOrg(announcementId);
-    const originalLink = normalizeTextOrNull(input.detail_url);
+    const originalLink = normalizeOriginalLinkOrNull(input.detail_url);
     const applicationPeriod = normalizeTextOrNull(input.posted_at);
     const normalizedApplicationTypeRaw = normalizeTextOrNull(input.application_type_raw);
     const applicationTypeRaw =
