@@ -79,6 +79,7 @@
 - `claude.md`
   - Claude 작업 입력 템플릿, 컨텍스트 운용, 프롬프트 체크리스트
 - TypeScript 전환/검증 기준: `README.md`의 "TypeScript lint/컨벤션 검증 명령" 섹션
+- PR/리뷰 체크리스트의 TS lint 통과 기준: `docs/workflow.md`의 "문서 변경 시 추가 체크리스트" 섹션
 
 ## E. 운영 보강 문서 (충돌 완화용 분리 항목)
 - `docs/03-operations/03-scheduled-slack-report-runbook.md`

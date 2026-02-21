@@ -28,7 +28,7 @@ npm run lint
 npm run build
 ```
 
-- `npm run lint`: `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin` 기반 규칙을 포함해 TS 코드 컨벤션을 검사합니다.
+- `npm run lint`: `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin` 및 import 정렬 규칙을 포함해 `src/**/*.ts`, `tests/**/*.ts` 중심 TS 코드 컨벤션을 검사합니다.
 - `npm run build`: `tsconfig.json`(`rootDir`, `outDir`, `module`, `target`, `strict`) 기준으로 컴파일 가능 여부를 검증합니다.
 
 ## 문서 시작점
