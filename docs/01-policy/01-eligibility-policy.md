@@ -6,14 +6,14 @@
 - 자격요건 충족 여부가 공고 원문에서 모호하면 보수적으로 `검토필요`
 
 ## 2. SH/LH 청약 형태 분류 기준(정규화)
-수집 시 공고 원문의 유형명을 아래 `application_type`으로 정규화합니다.
+수집 시 공고 원문의 유형명을 아래 `application_type`으로 정규화합니다. (파서 규격: `docs/02-tech-wiki/03-parser-spec.md`와 동기화)
 
-- `PUBLIC_RENTAL` : 국민임대/영구임대/행복주택/장기전세/통합공공임대 등 공공임대 계열
-- `PUBLIC_SALE` : 공공분양/신혼희망타운 등 분양 계열
-- `JEONSE_RENTAL` : 전세임대 계열(청년/신혼부부/일반)
-- `PURCHASE_RENTAL` : 매입임대 계열(청년/신혼부부/고령자)
-- `REDEVELOPMENT_SPECIAL` : 재개발·재건축 이주대책/특별공급성 공고
-- `UNKNOWN` : 분류 불가(원문 유지 + 수동 검토)
+- `PUBLIC_RENTAL` : `국민임대`, `영구임대`, `행복주택`, `장기전세`, `통합공공임대`, `공공임대`
+- `PUBLIC_SALE` : `공공분양`, `신혼희망타운`, `분양`
+- `JEONSE_RENTAL` : `전세임대`
+- `PURCHASE_RENTAL` : `매입임대`
+- `REDEVELOPMENT_SPECIAL` : `재개발`, `재건축`, `이주대책`, `특별공급`
+- `UNKNOWN` : 분류 불가(원문 유지 + 수동 검토, `UNMAPPED_APPLICATION_TYPE` 로그 기록)
 
 ## 3. SH/LH 공통 판정 항목
 아래 항목을 기준으로 기본 적합도를 계산합니다.
@@ -52,5 +52,7 @@
 
 ## 5. 예외 처리
 - SH/LH 원문 공고와 파싱 데이터가 충돌하면 원문 우선
+- 원문 모호성/해석 불가 문구는 `AMBIGUOUS_RULE_TEXT`로 로그 메타데이터에 기록
+- 모호성 근거 문구는 `log.metadata.ambiguous_fragments` 배열에 보존
 - 하나라도 법적 필수 자격(무주택, 세대요건 등) 위배 시 `부적합`
 - 마감 임박 공고는 판정과 별개로 우선 알림 가능(정책 분리)
