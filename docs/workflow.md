@@ -66,7 +66,9 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
 - **Detect changed file groups**
   - 변경 파일 분류만 수행 (실행 명령 없음)
 - **Code lint check**
-  - 실행 명령: `npm run lint`
+  - 실행 명령 1: `npm run lint:js`
+  - 실행 명령 2: `ruff check src tests`
+  - (통합 스크립트: `npm run lint`)
 - **Commit convention check**
   - 실행 명령: `echo "$PR_TITLE" | npm run commitlint:pr-title`
 - **Docs YAML format & syntax check**

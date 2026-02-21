@@ -4,7 +4,9 @@
   "private": true,
   "description": "문서 우선 운영 저장소의 lint/format/commitlint 실행 환경",
   "scripts": {
-    "lint": "eslint . --ext .js,.cjs --max-warnings=0",
+    "lint": "npm run lint:js && npm run lint:py",
+    "lint:js": "eslint . --ext .js,.cjs --max-warnings=0",
+    "lint:py": "ruff check src tests",
     "format": "prettier --write \"**/*.{js,cjs,json}\"",
     "format:check": "prettier --check \"**/*.{js,cjs,json}\"",
     "commitlint": "commitlint --last",
