@@ -58,3 +58,26 @@ test('acceptance evaluator: 기준 미달 지표를 수치와 함께 표준 메�
     /^\[ACCEPTANCE_FAIL\] run=batch-3 metric=검토필요 분기율 actual=17\.02% threshold=<=15\.00% formula=검토필요 분류 건수 \/ 수집 성공 건수$/,
   );
 });
+
+
+test('acceptance evaluator: 수집 성공률 분모는 SH 최근 50건으로 고정 계산한다', () => {
+  const samples = createPassingSamples();
+
+  samples[0] = {
+    ...samples[0],
+    shRecentTargetCount: 40,
+    collectedSuccessCount: 39,
+  };
+
+  const result = evaluateAcceptanceBatches(samples);
+
+  assert.equal(result.pass, false);
+  assert.match(
+    result.failures[0],
+    /^\[ACCEPTANCE_FAIL\] run=batch-1 metric=수집 성공률 분모 actual=40건 threshold=50건 formula=SH 최근 N\(50\)건 고정$/,
+  );
+  assert.match(
+    result.failures[1],
+    /^\[ACCEPTANCE_FAIL\] run=batch-1 metric=수집 성공률 actual=78\.00% threshold=>=95\.00% formula=수집 성공 건수 \/ SH 최근 N\(50\)건$/,
+  );
+});

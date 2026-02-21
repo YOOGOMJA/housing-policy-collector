@@ -74,12 +74,18 @@ export const evaluateAcceptanceBatches = (
   }
 
   const snapshots = samples.map((sample) => {
-    const collectionSuccessRate = toRate(sample.collectedSuccessCount, sample.shRecentTargetCount);
+    const collectionSuccessRate = toRate(sample.collectedSuccessCount, SH_RECENT_TARGET_COUNT);
     const requiredFieldExtractionRate = toRate(
       sample.requiredFieldsCompleteCount,
       sample.collectedSuccessCount,
     );
     const reviewNeededBranchRate = toRate(sample.reviewNeededCount, sample.collectedSuccessCount);
+
+    if (sample.shRecentTargetCount !== SH_RECENT_TARGET_COUNT) {
+      failures.push(
+        `[ACCEPTANCE_FAIL] run=${sample.runId} metric=수집 성공률 분모 actual=${sample.shRecentTargetCount}건 threshold=${SH_RECENT_TARGET_COUNT}건 formula=SH 최근 N(50)건 고정`,
+      );
+    }
 
     if (collectionSuccessRate < 0.95) {
       failures.push(
