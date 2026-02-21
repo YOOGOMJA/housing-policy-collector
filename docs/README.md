@@ -78,6 +78,7 @@
   - 저장소 전역 에이전트 작업 규칙(우선순위/검증/커밋·PR 원칙)
 - `claude.md`
   - Claude 작업 입력 템플릿, 컨텍스트 운용, 프롬프트 체크리스트
+- TypeScript 전환/검증 기준: `README.md`의 "TypeScript lint/컨벤션 검증 명령" 섹션
 
 ## E. 운영 보강 문서 (충돌 완화용 분리 항목)
 - `docs/03-operations/03-scheduled-slack-report-runbook.md`
