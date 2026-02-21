@@ -16,6 +16,5 @@ module.exports = {
   rules: {
     "scope-empty": [2, "never"],
     "scope-issue-number": [2, "always"],
-    "body-empty": [2, "never"],
   },
 };
