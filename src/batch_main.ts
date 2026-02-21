@@ -1,5 +1,8 @@
 /** 배치 실행용 엔트리포인트. */
 
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { runPipeline } from './main.js';
 
 export const main = (): void => {
@@ -8,6 +11,10 @@ export const main = (): void => {
   console.log(`batch executed at ${startedAt}: ${JSON.stringify(result)}`);
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isDirectExecution =
+  process.argv[1] !== undefined &&
+  resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1]);
+
+if (isDirectExecution) {
   main();
 }
