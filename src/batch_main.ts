@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 import { runPipeline } from './main.js';
 
-export const main = (): void => {
+export const main = async (): Promise<void> => {
   const startedAt = new Date().toISOString();
-  const result = runPipeline();
+  const result = await runPipeline();
   console.log(`batch executed at ${startedAt}: ${JSON.stringify(result)}`);
 };
 
@@ -16,5 +16,5 @@ const isDirectExecution =
   resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1]);
 
 if (isDirectExecution) {
-  main();
+  void main();
 }
