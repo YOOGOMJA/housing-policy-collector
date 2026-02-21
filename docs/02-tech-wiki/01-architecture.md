@@ -64,3 +64,11 @@
 - **MVP~초기 운영**: 로컬 SQLite + 백업 자동화 + 복구 리허설
 - **전환 준비**: Postgres 호환 스키마/마이그레이션 스크립트 상시 유지
 - **확장 운영**: Supabase 전환 후 모니터링/SLA 기준으로 튜닝
+
+### 8) Storage 모듈 인터페이스 원칙
+- `src/storage`는 영속 저장 구현체를 직접 노출하지 않고, `save` 인터페이스와 adapter 경계만 외부에 공개합니다.
+- 저장 최소 단위는 `announcement_id`이며, 동일 공고 재수집 시 `content_hash` 비교로 `updated`/`skipped`를 판정합니다.
+- 파이프라인 로그 품질을 위해 저장 결과는 단일 count가 아니라 `{created, updated, skipped}` 구조로 반환합니다.
+- 판정 근거 추적을 위해 `source_snapshot_ref`를 함께 저장합니다.
+- 현재 기본 구현은 in-memory adapter이며, SQLite/Postgres 전환 시 `src/storage` 내부 adapter만 교체하는 것을 원칙으로 합니다.
+

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { main as batchMain } from '../src/batch_main.js';
+import { resetStorageAdapter } from '../src/storage/index.js';
 
 test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 출력한다', async () => {
   const originalFetch = globalThis.fetch;
@@ -27,6 +28,8 @@ test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 �
     logs.push(String(message));
   };
 
+  resetStorageAdapter();
+
   try {
     await batchMain();
   } finally {
@@ -38,6 +41,6 @@ test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 �
   assert.match(logs[0], /batch executed at/);
   assert.match(
     logs[0],
-    /"collected":1,"parsed":1,"saved":1,"notified":1/,
+    /"collected":1,"parsed":1,"saved":\{"created":1,"updated":0,"skipped":0\},"notified":1/,
   );
 });

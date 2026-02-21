@@ -75,6 +75,8 @@
 | supply_type | TEXT | Y | NULL | INDEX | - | N | N |
 | notice_url | TEXT | Y | NULL | UNIQUE INDEX(선택) | - | N | N |
 | parse_status | TEXT | N | 'PARSED' | INDEX | - | N | N |
+| source_snapshot_ref | TEXT | Y | NULL | INDEX | - | N | N |
+| content_hash | TEXT | Y | NULL | INDEX | - | N | N |
 | created_at | TIMESTAMPTZ | N | now() | INDEX | - | N | N |
 | updated_at | TIMESTAMPTZ | N | now() | - | - | N | N |
 
@@ -126,3 +128,14 @@
   - `notification_log.payload_summary`에는 원문 개인정보를 저장하지 않습니다.
   - 실패 로그(`error_code`)에도 원문 PII를 포함하지 않습니다.
 - 상세 정책은 `docs/01-policy/02-data-privacy-policy.md`를 단일 출처(Source of Truth)로 참조합니다.
+
+
+### 2.5 저장 idempotency 규칙
+
+- 최소 저장 단위는 `announcement_id`입니다.
+- 동일 `announcement_id` 재수집 시 `content_hash`를 비교해 아래처럼 처리합니다.
+  - hash 동일: `skipped`
+  - hash 변경: `updated` (최신 `source_snapshot_ref`로 교체)
+  - 신규 `announcement_id`: `created`
+- 저장 인터페이스 반환 값은 배치 로그 품질 향상을 위해 `{created, updated, skipped}` 구조를 사용합니다.
+- SQLite/Postgres 전환 시에도 동일 인터페이스를 유지하고 구현체만 교체합니다.
