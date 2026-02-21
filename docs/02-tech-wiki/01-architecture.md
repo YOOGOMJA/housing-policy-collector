@@ -14,10 +14,13 @@
 
 ## 실행 진입점 분리
 
-- 앱 시작점: `src/main.ts`
-- 배치 실행점: `src/batch_main.ts`
-- 개발 실행: `tsx` 또는 `ts-node`
-- 운영 실행: `tsc` 빌드 후 `node dist/...`
+| 구분 | 실행 진입점 | 비고 |
+|---|---|---|
+| 앱 런타임 | `src/main.ts` | 실시간/일반 실행 진입점 |
+| 배치 런타임 | `src/batch_main.ts` | 스케줄/수동 배치 실행 진입점 |
+
+- 개발 실행: `npm run dev` 또는 배치 기준 `npm run dev:batch`
+- 운영 실행: `tsc` 빌드 후 `npm run start`, `npm run start:batch`
 
 ## Storage 전략: 로컬 DB 영속성 vs Supabase
 
