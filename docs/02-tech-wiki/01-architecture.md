@@ -1,7 +1,21 @@
 # 아키텍처
 
-- Collector / Parser / Matcher / Notifier / Storage
-- 기관별 파서 모듈 분리
+## 모듈 경계 (문서 ↔ 코드 1:1 매핑)
+
+아래 명칭은 문서와 실제 패키지/디렉터리를 1:1로 고정합니다.
+
+| 문서 모듈명 | 실제 패키지/디렉터리 | 책임 |
+|---|---|---|
+| Collector | `src/collector` | 공고 원문/목록 수집 |
+| Parser | `src/parser` | 원문 정규화 및 구조화 |
+| Matcher | `src/matcher` | 사용자 조건 기반 매칭 |
+| Notifier | `src/notifier` | 채널별 알림 전송 |
+| Storage | `src/storage` | 영속 저장 및 조회 |
+
+## 실행 진입점 분리
+
+- 앱 시작점: `src/main.py`
+- 배치 실행점: `src/batch_main.py`
 
 ## Storage 전략: 로컬 DB 영속성 vs Supabase
 

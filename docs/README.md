@@ -17,6 +17,7 @@
    - 알림 채널, 중복방지, 리마인드 정책
 7. `docs/02-tech-wiki/01-architecture.md`
    - 시스템 구성도, 모듈 경계, 데이터 흐름
+   - 문서 모듈명과 `src/` 디렉터리 1:1 매핑(Collector/Parser/Matcher/Notifier/Storage)
 8. `docs/02-tech-wiki/02-data-model.md`
    - 엔티티/스키마/필드 정의(암호화 포함)
 9. `docs/02-tech-wiki/03-parser-spec.md`

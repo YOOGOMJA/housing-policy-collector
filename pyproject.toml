@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "housing-policy-collector"
+version = "0.1.0"
+description = "SH/LH 청약 공고 수집 및 매칭 최소 실행 골격"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "housing-policy-collector" }
+]
+dependencies = []
+
+[project.scripts]
+hpc-app = "main:main"
+hpc-batch = "batch_main:main"
+
+[tool.setuptools]
+py-modules = ["main", "batch_main"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
