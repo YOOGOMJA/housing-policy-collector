@@ -29,10 +29,10 @@
     - AI 작업 공통 규칙(문서 동기화/보수적 판단)
 13. `docs/04-ai-instructions/02-subagent-workflow.md`
     - 서브에이전트 순차 실행 계획과 산출물
-14. `docs/04-ai-instructions/03-multi-agent-collaboration-rules.md`  
-    - 동시다발 협업 규칙, 소유권, 품질 게이트
-15. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
+14. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
     - AI 작업 문서의 누락 분석 및 보강 우선순위
+15. `docs/04-ai-instructions/03-multi-agent-collaboration-rules.md`
+    - 동시다발 협업 규칙, 소유권, 품질 게이트
 16. `docs/04-ai-instructions/04-context-window-playbook.md`
     - 컨텍스트 윈도우 예산/로딩/분할 전략
 17. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
@@ -41,12 +41,24 @@
     - AGENTS.md 배치/우선순위/운영 절차
 
 ## B. 작성 순서 (재정렬)
-1) 문제정의 → 2) 요구사항 → 3) 범위/릴리즈
-4) 판정정책 → 5) 개인정보정책 → 6) 알림정책
-7) 아키텍처 → 8) 데이터모델 → 9) 파서규격
-10) 모니터링SLA → 11) 장애대응
-12) AI 가이드 → 13) 서브에이전트 워크플로우
-14) AI 문서 갭 분석 → 15) 컨텍스트 플레이북 → 16) 프롬프트 플레이북 → 17) AGENTS 운영
+1. 문제정의
+2. 요구사항
+3. 범위/릴리즈
+4. 판정정책
+5. 개인정보정책
+6. 알림정책
+7. 아키텍처
+8. 데이터모델
+9. 파서규격
+10. 모니터링SLA
+11. 장애대응
+12. AI 가이드
+13. 서브에이전트 워크플로우
+14. AI 문서 갭 분석
+15. 멀티에이전트 협업 규칙
+16. 컨텍스트 플레이북
+17. 프롬프트 플레이북
+18. AGENTS 운영
 
 ## C. 운영 규칙
 - 정책 문서 변경 시 기술 문서를 같은 커밋에서 동기화합니다.
