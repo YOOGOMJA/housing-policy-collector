@@ -1,11 +1,12 @@
-import { DatabaseSync } from 'node:sqlite';
+import { DatabaseSync } from "node:sqlite";
 
 import type {
+  AcceptanceRuntimeMetricRecord,
   BatchRunHistoryRecord,
   NotificationKeySaveResult,
   SaveResult,
   StorageAdapter,
-} from './index.js';
+} from "./index.js";
 
 type AnnouncementRow = {
   announcement_id: string;
@@ -57,6 +58,14 @@ export class SQLiteStorageAdapter implements StorageAdapter {
         saved_skipped_count INTEGER NOT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
+
+      CREATE TABLE IF NOT EXISTS acceptance_runtime_metrics (
+        run_id TEXT PRIMARY KEY,
+        collected_success_count INTEGER NOT NULL,
+        required_fields_complete_count INTEGER NOT NULL,
+        review_needed_count INTEGER NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
     `);
   }
 
@@ -68,7 +77,7 @@ export class SQLiteStorageAdapter implements StorageAdapter {
     };
 
     const selectExistingStmt = this.db.prepare(
-      'SELECT content_hash FROM announcements WHERE announcement_id = ?',
+      "SELECT content_hash FROM announcements WHERE announcement_id = ?",
     );
     const upsertStmt = this.db.prepare(`
       INSERT INTO announcements (announcement_id, content_hash, source_snapshot_ref, updated_at)
@@ -79,7 +88,7 @@ export class SQLiteStorageAdapter implements StorageAdapter {
         updated_at = datetime('now')
     `);
 
-    this.db.exec('BEGIN');
+    this.db.exec("BEGIN");
     try {
       for (const item of items) {
         const existing = selectExistingStmt.get(item.announcement_id) as
@@ -87,7 +96,11 @@ export class SQLiteStorageAdapter implements StorageAdapter {
           | undefined;
 
         if (existing === undefined) {
-          upsertStmt.run(item.announcement_id, item.content_hash, item.source_snapshot_ref);
+          upsertStmt.run(
+            item.announcement_id,
+            item.content_hash,
+            item.source_snapshot_ref,
+          );
           result.created += 1;
           continue;
         }
@@ -97,12 +110,16 @@ export class SQLiteStorageAdapter implements StorageAdapter {
           continue;
         }
 
-        upsertStmt.run(item.announcement_id, item.content_hash, item.source_snapshot_ref);
+        upsertStmt.run(
+          item.announcement_id,
+          item.content_hash,
+          item.source_snapshot_ref,
+        );
         result.updated += 1;
       }
-      this.db.exec('COMMIT');
+      this.db.exec("COMMIT");
     } catch (error) {
-      this.db.exec('ROLLBACK');
+      this.db.exec("ROLLBACK");
       throw error;
     }
 
@@ -115,7 +132,7 @@ export class SQLiteStorageAdapter implements StorageAdapter {
     }
 
     const findStmt = this.db.prepare(
-      'SELECT idempotency_key FROM notification_deliveries WHERE idempotency_key = ?',
+      "SELECT idempotency_key FROM notification_deliveries WHERE idempotency_key = ?",
     );
 
     return keys.filter((key) => findStmt.get(key) === undefined);
@@ -138,7 +155,7 @@ export class SQLiteStorageAdapter implements StorageAdapter {
       ON CONFLICT(idempotency_key) DO NOTHING
     `);
 
-    this.db.exec('BEGIN');
+    this.db.exec("BEGIN");
     try {
       for (const item of keys) {
         const runResult = saveStmt.run(
@@ -154,9 +171,9 @@ export class SQLiteStorageAdapter implements StorageAdapter {
           result.skipped += 1;
         }
       }
-      this.db.exec('COMMIT');
+      this.db.exec("COMMIT");
     } catch (error) {
-      this.db.exec('ROLLBACK');
+      this.db.exec("ROLLBACK");
       throw error;
     }
 
@@ -200,5 +217,51 @@ export class SQLiteStorageAdapter implements StorageAdapter {
       record.saved_updated_count,
       record.saved_skipped_count,
     );
+  }
+
+  saveAcceptanceRuntimeMetrics(record: AcceptanceRuntimeMetricRecord): void {
+    const stmt = this.db.prepare(`
+      INSERT INTO acceptance_runtime_metrics (
+        run_id,
+        collected_success_count,
+        required_fields_complete_count,
+        review_needed_count,
+        created_at
+      ) VALUES (?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(run_id) DO UPDATE SET
+        collected_success_count = excluded.collected_success_count,
+        required_fields_complete_count = excluded.required_fields_complete_count,
+        review_needed_count = excluded.review_needed_count,
+        created_at = datetime('now')
+    `);
+
+    stmt.run(
+      record.run_id,
+      record.collected_success_count,
+      record.required_fields_complete_count,
+      record.review_needed_count,
+    );
+  }
+
+  getRecentAcceptanceRuntimeMetrics(
+    limit: number,
+  ): AcceptanceRuntimeMetricRecord[] {
+    if (limit <= 0) {
+      return [];
+    }
+
+    const stmt = this.db.prepare(`
+      SELECT
+        run_id,
+        collected_success_count,
+        required_fields_complete_count,
+        review_needed_count
+      FROM acceptance_runtime_metrics
+      ORDER BY datetime(created_at) DESC, rowid DESC
+      LIMIT ?
+    `);
+
+    const rows = stmt.all(limit) as AcceptanceRuntimeMetricRecord[];
+    return rows;
   }
 }

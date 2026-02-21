@@ -29,6 +29,13 @@ export type BatchRunHistoryRecord = {
   saved_skipped_count: number;
 };
 
+export type AcceptanceRuntimeMetricRecord = {
+  run_id: string;
+  collected_success_count: number;
+  required_fields_complete_count: number;
+  review_needed_count: number;
+};
+
 type AnnouncementRecord = {
   announcement_id: string;
   source_snapshot_ref: string | null;
@@ -48,6 +55,10 @@ export type StorageAdapter = {
     keys: NotificationKeyRecord[],
   ): NotificationKeySaveResult;
   saveBatchRunHistory(record: BatchRunHistoryRecord): void;
+  saveAcceptanceRuntimeMetrics(record: AcceptanceRuntimeMetricRecord): void;
+  getRecentAcceptanceRuntimeMetrics(
+    limit: number,
+  ): AcceptanceRuntimeMetricRecord[];
 };
 
 const buildContentHash = (item: MatchedItem): string => {
@@ -90,6 +101,8 @@ class InMemoryStorageAdapter implements StorageAdapter {
   private readonly notificationKeys = new Set<string>();
 
   private readonly batchRuns = new Map<string, BatchRunHistoryRecord>();
+
+  private readonly acceptanceMetrics: AcceptanceRuntimeMetricRecord[] = [];
 
   saveByAnnouncement(items: AnnouncementRecord[]): SaveResult {
     const result: SaveResult = {
@@ -149,6 +162,20 @@ class InMemoryStorageAdapter implements StorageAdapter {
   saveBatchRunHistory(record: BatchRunHistoryRecord): void {
     this.batchRuns.set(record.run_id, record);
   }
+
+  saveAcceptanceRuntimeMetrics(record: AcceptanceRuntimeMetricRecord): void {
+    this.acceptanceMetrics.push(record);
+  }
+
+  getRecentAcceptanceRuntimeMetrics(
+    limit: number,
+  ): AcceptanceRuntimeMetricRecord[] {
+    if (limit <= 0) {
+      return [];
+    }
+
+    return [...this.acceptanceMetrics].slice(-limit).reverse();
+  }
 }
 
 let storageAdapter: StorageAdapter = new InMemoryStorageAdapter();
@@ -195,4 +222,16 @@ export const filterUnstoredNotificationIdempotencyKeys = (
 
 export const saveBatchRunHistory = (record: BatchRunHistoryRecord): void => {
   storageAdapter.saveBatchRunHistory(record);
+};
+
+export const saveAcceptanceRuntimeMetrics = (
+  record: AcceptanceRuntimeMetricRecord,
+): void => {
+  storageAdapter.saveAcceptanceRuntimeMetrics(record);
+};
+
+export const getRecentAcceptanceRuntimeMetrics = (
+  limit: number,
+): AcceptanceRuntimeMetricRecord[] => {
+  return storageAdapter.getRecentAcceptanceRuntimeMetrics(limit);
 };
