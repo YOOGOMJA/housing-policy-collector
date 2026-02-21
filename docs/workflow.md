@@ -58,7 +58,30 @@ PR에는 아래 항목을 반드시 포함합니다.
 - 변경 문서 간 링크/참조 누락이 없는가?
 - 코드 구조 변경 시 `docs/02-tech-wiki/01-architecture.md`의 모듈명과 실제 디렉터리(`src/`)가 1:1인지 확인했는가?
 
-## 4) 권장 진행 순서
+## 4) PR CI 자동 검증 기준
+
+PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행됩니다.
+
+### Job 이름과 실행 명령
+- **Detect changed file groups**
+  - 변경 파일 분류만 수행 (실행 명령 없음)
+- **Code lint check**
+  - 실행 명령: `npm run lint`
+- **Commit convention check**
+  - 실행 명령: `echo "$PR_TITLE" | npm run commitlint:pr-title`
+- **Docs YAML format & syntax check**
+  - 실행 명령 1: `npm run docs:yaml:format:check`
+  - 실행 명령 2: `npm run docs:yaml:lint`
+
+### 조건별 실행 규칙
+- 코드 변경(PR에서 docs 외 파일 변경 포함):
+  - `Code lint check` + `Commit convention check` 실행
+- 문서 변경(PR에서 `docs/**/*.yml`, `docs/**/*.yaml` 포함):
+  - `Docs YAML format & syntax check` 실행
+- 일반 문서(`.md`) 변경만 있는 경우:
+  - 문서 포맷/문법 체크는 실행하지 않음
+
+## 5) 권장 진행 순서
 
 1. 이슈 생성 (템플릿 기반)
 2. 브랜치 생성 및 작업

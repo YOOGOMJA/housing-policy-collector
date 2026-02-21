@@ -1,0 +1,24 @@
+{
+  "name": "housing-policy-collector",
+  "version": "1.0.0",
+  "private": true,
+  "description": "문서 우선 운영 저장소의 lint/format/commitlint 실행 환경",
+  "scripts": {
+    "lint": "eslint . --ext .js,.cjs --max-warnings=0",
+    "format": "prettier --write \"**/*.{js,cjs,json}\"",
+    "format:check": "prettier --check \"**/*.{js,cjs,json}\"",
+    "commitlint": "commitlint --last",
+    "commitlint:pr-title": "commitlint --config commitlint.pr-title.config.cjs --verbose",
+    "docs:yaml:format:check": "bash -lc 'shopt -s globstar nullglob; files=(docs/**/*.yml docs/**/*.yaml); if [ ${#files[@]} -eq 0 ]; then echo \"YAML 파일 없음: 검사 생략\"; exit 0; fi; prettier --check \"${files[@]}\"'",
+    "docs:yaml:lint": "bash -lc 'shopt -s globstar nullglob; files=(docs/**/*.yml docs/**/*.yaml); if [ ${#files[@]} -eq 0 ]; then echo \"YAML 파일 없음: 검사 생략\"; exit 0; fi; yaml-lint \"${files[@]}\"'"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "globals": "^15.15.0",
+    "prettier": "^3.5.2",
+    "yaml-lint": "^1.7.0"
+  }
+}

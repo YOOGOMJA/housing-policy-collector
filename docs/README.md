@@ -68,6 +68,7 @@
 - 개인정보 원문 로그는 금지합니다.
 - AI 지침 문서 추가/변경 시 문서 인덱스와 워크플로우 문서를 함께 점검합니다.
 - 정기 리포트 정책 변경 시 `03-operations/03-scheduled-slack-report-runbook.md`와 `01-policy/03-notification-policy.md`를 함께 점검합니다.
+- PR 자동 검증 기준은 `docs/workflow.md`와 `.github/workflows/ci.yml`을 동일 기준으로 유지합니다.
 
 ## D. 루트 에이전트 운영 문서
 - `AGENTS.md`
