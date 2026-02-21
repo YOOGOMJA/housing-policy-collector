@@ -13,12 +13,10 @@ const MISSING_REQUIREMENT_FIELDS: Array<
   keyof Pick<ParsedItem, 'region_requirement' | 'income_requirement' | 'asset_requirement'>
 > = ['region_requirement', 'income_requirement', 'asset_requirement'];
 
-const HOUSEHOLD_DISQUALIFYING_PATTERNS: RegExp[] = [
-  /유주택/,
-  /주택\s*소유/,
-  /무주택\s*아님/,
-  /1주택/,
-  /2주택/,
+const EXPLICIT_VIOLATION_PATTERNS: RegExp[] = [
+  /신청자[^,.\n]{0,30}(유주택|주택\s*소유|무주택\s*아님|1주택|2주택)/,
+  /(유주택|주택\s*소유|무주택\s*아님|1주택|2주택)[^,.\n]{0,20}(확인|판정|위배|위반)/,
+  /무주택\s*요건[^,.\n]{0,10}(미충족|위반|위배)/,
 ];
 
 const hasMissingRequirementData = (item: ParsedItem): boolean => {
@@ -42,44 +40,36 @@ const hasUnknownOrAmbiguousContext = (item: ParsedItem): boolean => {
 };
 
 const hasLegalDisqualifyingSignal = (item: ParsedItem): boolean => {
-  const legalSignals = [item.household_requirement, item.eligibility_rules_raw]
+  const legalContext = [item.household_requirement, item.eligibility_rules_raw]
     .filter((value): value is string => value !== null)
     .join(' ');
 
-  if (legalSignals.length === 0) {
+  if (legalContext.length === 0) {
     return false;
   }
 
-  return HOUSEHOLD_DISQUALIFYING_PATTERNS.some((pattern) => pattern.test(legalSignals));
+  return EXPLICIT_VIOLATION_PATTERNS.some((pattern) => pattern.test(legalContext));
 };
 
 const evaluateInitialGrade = (item: ParsedItem): Pick<MatchedItem, 'grade' | 'reasons'> => {
-  const reasons: string[] = [];
-
   if (hasLegalDisqualifyingSignal(item)) {
-    reasons.push('LEGAL_REQUIREMENT_VIOLATION: household_requirement');
-
     return {
       grade: '부적합',
-      reasons,
+      reasons: ['LEGAL_REQUIREMENT_VIOLATION: explicit-household-context'],
     };
   }
 
   if (hasUnknownOrAmbiguousContext(item)) {
-    reasons.push('REVIEW_REQUIRED: UNKNOWN_APPLICATION_TYPE_OR_AMBIGUITY');
-
     return {
       grade: '검토필요',
-      reasons,
+      reasons: ['REVIEW_REQUIRED: UNKNOWN_APPLICATION_TYPE_OR_AMBIGUITY'],
     };
   }
 
   if (hasMissingRequirementData(item)) {
-    reasons.push('REVIEW_CAP_APPLIED: MISSING_REGION_OR_INCOME_OR_ASSET');
-
     return {
       grade: '검토필요',
-      reasons,
+      reasons: ['REVIEW_CAP_APPLIED: MISSING_REGION_OR_INCOME_OR_ASSET'],
     };
   }
 
@@ -89,14 +79,33 @@ const evaluateInitialGrade = (item: ParsedItem): Pick<MatchedItem, 'grade' | 're
   };
 };
 
+const enforceParserJudgementCap = (
+  item: ParsedItem,
+  decision: Pick<MatchedItem, 'grade' | 'reasons'>,
+): Pick<MatchedItem, 'grade' | 'reasons'> => {
+  if (item.judgement_grade_cap !== '검토필요') {
+    return decision;
+  }
+
+  if (decision.grade === '유력' || decision.grade === '확정 가능') {
+    return {
+      grade: '검토필요',
+      reasons: [...decision.reasons, 'REVIEW_CAP_APPLIED: parser_judgement_grade_cap'],
+    };
+  }
+
+  return decision;
+};
+
 export const match = (parsedItems: ParsedItem[]): MatchedItem[] => {
   return parsedItems.map((item) => {
     const initialDecision = evaluateInitialGrade(item);
+    const finalDecision = enforceParserJudgementCap(item, initialDecision);
 
     return {
       ...item,
-      grade: initialDecision.grade,
-      reasons: initialDecision.reasons,
+      grade: finalDecision.grade,
+      reasons: finalDecision.reasons,
     };
   });
 };
