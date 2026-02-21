@@ -4,6 +4,7 @@ SH/LH 청약 공고를 개인 조건에 맞춰 선별하고 알림을 보내는 
 
 ## 문서 시작점
 - 전체 문서 인덱스: `docs/README.md`
+- 정기 Slack 리포트 운영 기준: `docs/03-operations/03-scheduled-slack-report-runbook.md`
 - 에이전트 운영 규칙: `AGENTS.md`
 - Claude 작업 가이드: `claude.md`
 
