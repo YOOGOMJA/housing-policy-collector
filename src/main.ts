@@ -3,6 +3,7 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import type { DownstreamAnnouncementInput } from './collector/index.js';
 import { collect } from './collector/index.js';
 import { match } from './matcher/index.js';
 import { notify } from './notifier/index.js';
@@ -23,11 +24,16 @@ export type PipelineResult = {
 
 export const runPipeline = async (): Promise<PipelineResult> => {
   const collectResult = await collect();
+  const parseInputItems: DownstreamAnnouncementInput[] = collectResult.items.map((item) => ({
+    announcement_id: item.announcement_id,
+    title: item.title,
+    detail_url: item.detail_url,
+    posted_at: item.posted_at,
+    source_org: 'SH',
+  }));
+
   const parsedItems = parse(
-    collectResult.items.map((item) => ({
-      announcement_id: item.announcement_id,
-      title: item.title,
-    })),
+    parseInputItems,
   );
   const matchedItems = match(parsedItems);
   const savedResult = save(matchedItems);

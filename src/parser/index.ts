@@ -26,6 +26,10 @@ export type ParseInputItem = {
   sourceId?: string;
   announcement_id: string;
   title?: string;
+  /** 원문 링크 대응 값(빈 문자열/공백/undefined는 null 처리). */
+  detail_url?: string | null;
+  /** 신청기간 대응 값(POC에서는 posted_at을 사용, 빈 문자열/공백/undefined는 null 처리). */
+  posted_at?: string | null;
   source_org?: SourceOrg | null;
   application_type_raw?: string | null;
   eligibility_rules_raw?: string | null;
@@ -35,6 +39,10 @@ export type ParseInputItem = {
 export type ParsedItem = {
   sourceId: string;
   title: string;
+  /** 원문 링크(측정용 필드). */
+  original_link: string | null;
+  /** 신청기간 대응 값(측정용 필드, POC에서는 posted_at 원문을 그대로 보존). */
+  application_period: string | null;
   source_org: SourceOrg | null;
   announcement_id: string;
   application_type_raw: string | null;
@@ -75,6 +83,8 @@ const APPLICATION_TYPE_RULES: Array<{
 ];
 
 const AMBIGUOUS_RULE_KEYWORDS = ['추후', '별도', '상이', '참조', '예외', '추가 안내'];
+const SH_COLLECTOR_LIST_URL =
+  'https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_247/list.do?multi_itm_seq=0';
 
 const inferSourceOrg = (announcementId: string): SourceOrg | null => {
   if (announcementId.startsWith('SH-')) {
@@ -95,6 +105,31 @@ const normalizeTextOrNull = (value: string | null | undefined): string | null =>
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+};
+
+const normalizeOriginalLinkOrNull = (value: string | null | undefined): string | null => {
+  const normalized = normalizeTextOrNull(value);
+
+  if (normalized === null) {
+    return null;
+  }
+
+  try {
+    const normalizedUrl = new URL(normalized);
+    const fallbackUrl = new URL(SH_COLLECTOR_LIST_URL);
+
+    if (
+      normalizedUrl.origin === fallbackUrl.origin &&
+      normalizedUrl.pathname === fallbackUrl.pathname &&
+      normalizedUrl.search === fallbackUrl.search
+    ) {
+      return null;
+    }
+  } catch {
+    return normalized;
+  }
+
+  return normalized;
 };
 
 const inferApplicationTypeRaw = (title?: string): string | null => {
@@ -228,6 +263,8 @@ export const parse = (items: Array<string | ParseInputItem>): ParsedItem[] => {
     const input = toParseInputItem(item);
     const announcementId = input.announcement_id;
     const sourceOrg = input.source_org ?? inferSourceOrg(announcementId);
+    const originalLink = normalizeOriginalLinkOrNull(input.detail_url);
+    const applicationPeriod = normalizeTextOrNull(input.posted_at);
     const normalizedApplicationTypeRaw = normalizeTextOrNull(input.application_type_raw);
     const applicationTypeRaw =
       normalizedApplicationTypeRaw ?? inferApplicationTypeRaw(input.title) ?? null;
@@ -239,6 +276,8 @@ export const parse = (items: Array<string | ParseInputItem>): ParsedItem[] => {
     const parsedItem: ParsedItem = {
       sourceId: input.sourceId ?? announcementId,
       title: input.title ?? '샘플 공고',
+      original_link: originalLink,
+      application_period: applicationPeriod,
       source_org: sourceOrg,
       announcement_id: announcementId,
       application_type_raw: applicationTypeRaw,

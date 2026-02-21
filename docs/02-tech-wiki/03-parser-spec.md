@@ -5,13 +5,21 @@
 - 변경 감지를 위한 공고 식별키(기관, 공고번호, 모집차수) 보존
 
 ## 2. 필수 파싱 필드
+- `title` : 공고 제목
 - `source_org` : `SH` | `LH`
 - `announcement_id` : 공고 식별자
+- `original_link` : 원문 링크(`detail_url` 대응 필드)
+- `application_period` : 신청기간 대응 값(POC에서는 수집 `posted_at` 매핑)
 - `application_type_raw` : 원문 청약 유형 문자열
 - `application_type` : 정규화 유형
   - `PUBLIC_RENTAL` / `PUBLIC_SALE` / `JEONSE_RENTAL` / `PURCHASE_RENTAL` / `REDEVELOPMENT_SPECIAL` / `UNKNOWN`
 - `eligibility_rules_raw` : 자격요건 원문 블록
 - `region_requirement` / `household_requirement` / `income_requirement` / `asset_requirement`
+
+### 2.1 null 처리 규칙 (측정용 필드)
+- `ParseInputItem.detail_url`/`ParseInputItem.posted_at`가 `undefined`/`null`/공백 문자열이면 `ParsedItem.original_link`/`ParsedItem.application_period`는 `null`로 저장
+- `ParseInputItem.detail_url`가 SH collector fallback list URL(`https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_247/list.do?multi_itm_seq=0`)이면 상세 원문 링크 부재로 간주하고 `ParsedItem.original_link`를 `null`로 저장
+- 공백 제거 후 값이 남으면 원문 문자열을 그대로 저장(추가 포맷 변환 없음)
 
 ## 3. `application_type` 정규화 규칙
 `application_type_raw`를 아래 정책 enum으로 정규화합니다. 매핑 실패 시 `UNKNOWN`으로 처리하고 실패 사유를 로그에 남깁니다.
@@ -27,6 +35,7 @@
 ## 4. 실패/불확실 처리
 - 파싱 실패 시 사유 로깅
 - 필수 필드(`source_org`, `announcement_id`, `application_type_raw`, `eligibility_rules_raw`, `region_requirement`, `household_requirement`, `income_requirement`, `asset_requirement`) 누락 시 판정 등급을 최대 `검토필요`로 제한
+- Acceptance 측정용 필드(`title`, `source_org`, `application_period`, `original_link`)는 분자/분모 집계에 사용하며, 누락 여부는 별도 집계 로직에서 계산
 - 결합된 자격요건 문구(예: `서울시 거주 무주택세대구성원`)는 필드별로 분해 후 매핑
 - 유형 분류 실패 시 `application_type=UNKNOWN` + 원문 유지
 - 원문 모호성(조건 해석 불가/충돌) 발견 시 보수적으로 판정 등급 `검토필요` 분기

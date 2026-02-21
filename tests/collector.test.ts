@@ -3,6 +3,17 @@ import test from 'node:test';
 
 import { collect } from '../src/collector/index.js';
 
+const isCompleteRequiredField = (item: {
+  title: string;
+  source_org: 'SH' | 'LH';
+  posted_at: string;
+  detail_url: string;
+}): boolean => {
+  return [item.title, item.source_org, item.posted_at, item.detail_url].every(
+    (value) => value.trim().length > 0,
+  );
+};
+
 const createFetchResponse = (status: number, body: string): Response => {
   return new Response(body, {
     status,
@@ -87,6 +98,47 @@ test('collect: 네트워크 오류를 NETWORK_ERROR로 반환한다', async () =
     const result = await collect();
     assert.equal(result.error?.code, 'NETWORK_ERROR');
     assert.equal(result.items.length, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('collect fixture: 필수 필드 추출률 분자/분모 계산이 가능하다', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    createFetchResponse(
+      200,
+      `
+      <table>
+        <tr>
+          <td>1</td>
+          <td><a href="/notice/1">2026-001 1차 행복주택 입주자 모집</a></td>
+          <td>2026.03.01</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><a href="">2026-002 2차 행복주택 입주자 모집</a></td>
+          <td></td>
+        </tr>
+      </table>
+      `,
+    );
+
+  try {
+    const result = await collect({ recentLimit: 2 });
+
+    const denominator = result.items.length;
+    const numerator = result.items.filter((item) =>
+      isCompleteRequiredField({
+        title: item.title,
+        source_org: 'SH',
+        posted_at: item.posted_at,
+        detail_url: item.detail_url,
+      }),
+    ).length;
+
+    assert.equal(denominator, 2);
+    assert.equal(numerator, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

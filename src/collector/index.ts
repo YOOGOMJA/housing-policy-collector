@@ -24,6 +24,14 @@ export type ShAnnouncement = {
   posted_at: string;
 };
 
+/** 후속 모듈(파서/매처/저장소) 공통 입력 타입. */
+export type DownstreamAnnouncementInput = Pick<
+  ShAnnouncement,
+  'announcement_id' | 'title' | 'detail_url' | 'posted_at'
+> & {
+  source_org: 'SH';
+};
+
 export type CollectResult = {
   source_url: string;
   requested_limit: number;
