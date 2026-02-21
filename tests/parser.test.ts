@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parse } from '../src/parser/index.js';
+import {
+  classifyParserReviewReason,
+  parse,
+} from '../src/parser/index.js';
 
 const SH_COLLECTOR_LIST_URL =
   'https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_247/list.do?multi_itm_seq=0';
@@ -201,4 +204,84 @@ test('parse: collector fallback list URL은 original_link를 null로 정규화�
 
   assert.equal(parsed.original_link, null);
   assert.equal(parsed.application_period, '2026-05-01');
+});
+
+
+test('parse fixture: 검토필요 사유별 비중 집계를 계산할 수 있다', () => {
+  const parsedItems = parse([
+    {
+      announcement_id: 'LH-2026-RC-1',
+      source_org: 'LH',
+      detail_url: 'https://example.test/lh/rc-1',
+      posted_at: '2026-06-01',
+      application_type_raw: '행복주택',
+      eligibility_rules_raw: '무주택세대구성원, 도시근로자 월평균소득 70% 이하',
+    },
+    {
+      announcement_id: 'LH-2026-RC-2',
+      source_org: 'LH',
+      detail_url: 'https://example.test/lh/rc-2',
+      posted_at: '2026-06-02',
+      application_type_raw: '신유형주택',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 70% 이하, 총자산 2억 이하',
+    },
+    {
+      announcement_id: 'LH-2026-RC-3',
+      source_org: 'LH',
+      detail_url: 'https://example.test/lh/rc-3',
+      posted_at: '2026-06-03',
+      application_type_raw: '행복주택',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 70% 이하, 총자산 2억 이하(세부기준 추후 별도 안내)',
+    },
+    {
+      announcement_id: 'LH-2026-RC-4',
+      source_org: 'LH',
+      detail_url: 'https://example.test/lh/rc-4',
+      posted_at: '2026-06-04',
+      application_type_raw: '행복주택',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 70% 이하, 총자산 2억 이하',
+    },
+  ]);
+
+  const reviewItems = parsedItems.filter((item) => item.judgement_grade_cap === '검토필요');
+  const totalReviewReasons = reviewItems.flatMap((item) => item.log.metadata.failure_reasons).length;
+
+  const byCategory = reviewItems
+    .flatMap((item) => item.log.metadata.failure_reasons)
+    .reduce<Record<string, number>>((acc, reason) => {
+      const category = classifyParserReviewReason(reason);
+      acc[category] = (acc[category] ?? 0) + 1;
+      return acc;
+    }, {});
+
+  assert.equal(reviewItems.length, 3);
+  assert.equal(totalReviewReasons, 4);
+  assert.equal(byCategory.missing_field, 2);
+  assert.equal(byCategory.unknown_type, 1);
+  assert.equal(byCategory.ambiguity, 1);
+  assert.equal(byCategory.other ?? 0, 0);
+  assert.equal(byCategory.ambiguity / totalReviewReasons, 0.25);
+});
+
+// 회귀: 정상 케이스는 검토필요로 과도 분기되지 않아야 한다.
+test('parse regression: 정상 구조 공고는 judgement_grade_cap=확정 가능을 유지한다', () => {
+  const [parsed] = parse([
+    {
+      announcement_id: 'SH-2026-REG-1',
+      title: '2026-REG-1 행복주택 모집',
+      source_org: 'SH',
+      detail_url: 'https://example.test/sh/reg-1',
+      posted_at: '2026-06-10',
+      application_type_raw: '행복주택',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 100% 이하, 총자산 3억 이하',
+    },
+  ]);
+
+  assert.equal(parsed.judgement_grade_cap, '확정 가능');
+  assert.deepEqual(parsed.log.metadata.failure_reasons, []);
+  assert.deepEqual(parsed.log.metadata.ambiguous_fragments, []);
 });

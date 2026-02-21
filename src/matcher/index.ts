@@ -9,6 +9,45 @@ export type MatchedItem = ParsedItem & {
   reasons: string[];
 };
 
+
+export type MatcherReviewReasonCategory =
+  | 'unknown_or_ambiguity'
+  | 'missing_requirement'
+  | 'parser_cap'
+  | 'other';
+
+export const MATCHER_REVIEW_REASON_CODEBOOK: Array<{
+  category: Exclude<MatcherReviewReasonCategory, 'other'>;
+  codePrefix: string;
+  description: string;
+}> = [
+  {
+    category: 'unknown_or_ambiguity',
+    codePrefix: 'REVIEW_REQUIRED: UNKNOWN_APPLICATION_TYPE_OR_AMBIGUITY',
+    description: 'UNKNOWN 타입 또는 모호성으로 검토필요',
+  },
+  {
+    category: 'missing_requirement',
+    codePrefix: 'REVIEW_CAP_APPLIED: MISSING_REGION_OR_INCOME_OR_ASSET',
+    description: '핵심 요건(region/income/asset) 누락',
+  },
+  {
+    category: 'parser_cap',
+    codePrefix: 'REVIEW_CAP_APPLIED: parser_judgement_grade_cap',
+    description: 'Parser 단계 검토필요 cap 승계',
+  },
+];
+
+export const classifyMatcherReviewReason = (
+  reasonCode: string,
+): MatcherReviewReasonCategory => {
+  const matched = MATCHER_REVIEW_REASON_CODEBOOK.find((entry) => {
+    return reasonCode.startsWith(entry.codePrefix);
+  });
+
+  return matched?.category ?? 'other';
+};
+
 const MISSING_REQUIREMENT_FIELDS: Array<
   keyof Pick<ParsedItem, 'region_requirement' | 'income_requirement' | 'asset_requirement'>
 > = ['region_requirement', 'income_requirement', 'asset_requirement'];

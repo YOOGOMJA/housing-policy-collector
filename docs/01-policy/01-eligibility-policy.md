@@ -73,3 +73,17 @@
 - 공고문 원문 근거 문장과 판정 사유의 1:1 링크 제공
 - 유형별(`PUBLIC_RENTAL`, `PUBLIC_SALE` 등) 캘리브레이션 및 오탐/미탐 모니터링
 
+
+## 7. `검토필요` 강제 조건 예외 목록(과최적화 방지)
+다음 조건은 분기율 최적화 여부와 무관하게 **정책상 반드시 `검토필요`**로 유지해야 합니다.
+
+| 예외 코드 | 조건 | 정책 이유 | 시스템 동작 |
+| --- | --- | --- | --- |
+| `UNKNOWN_APPLICATION_TYPE_OR_AMBIGUITY` | `application_type=UNKNOWN` 또는 `AMBIGUOUS_RULE_TEXT` 감지 | 공고 유형/자격 해석 불확실 상태에서 자동 확정 시 오판 리스크 큼 | Matcher에서 `REVIEW_REQUIRED: UNKNOWN_APPLICATION_TYPE_OR_AMBIGUITY`로 `검토필요` 고정 |
+| `MISSING_REGION_OR_INCOME_OR_ASSET` | `region/income/asset` 핵심 요건 누락 | 핵심 요건 누락 상태에서 자동 승급 시 정책 위반 가능 | Matcher에서 `REVIEW_CAP_APPLIED: MISSING_REGION_OR_INCOME_OR_ASSET` 적용 |
+| `PARSER_JUDGEMENT_CAP` | Parser 단계 `judgement_grade_cap=검토필요` | 상위 단계에서 판정 cap을 해제하면 근거 추적 불가 | Matcher에서 `REVIEW_CAP_APPLIED: parser_judgement_grade_cap` 승계 |
+
+운영 원칙:
+- `검토필요` 분기율 임계치(15%)를 맞추더라도 위 3개 조건을 우회하는 규칙은 허용하지 않습니다.
+- 모델/룰 개선 시에도 예외 코드의 의미를 변경할 경우 정책 문서와 파서/매처 코드북을 동시 업데이트해야 합니다.
+
