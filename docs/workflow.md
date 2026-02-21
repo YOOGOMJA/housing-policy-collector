@@ -83,6 +83,7 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
   - 실행 명령: `npm run lint`
 - **Commit convention check**
   - 실행 명령: `echo "$PR_TITLE" | npm run commitlint:pr-title`
+  - 검사 기준: 커밋 스코프 규칙과 동일하게 `#이슈번호` 또는 허용된 도메인 스코프
 - **Docs YAML format & syntax check**
   - 실행 명령 1: `npm run docs:yaml:format:check`
   - 실행 명령 2: `npm run docs:yaml:lint`
