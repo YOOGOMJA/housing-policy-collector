@@ -1,0 +1,43 @@
+# 문서 인덱스 (정제본)
+
+아래는 지금 프로젝트에 **필수로 필요한 문서 목록**입니다.
+
+## A. 필수 문서 리스트업 (항번)
+1. `docs/00-product/01-problem-statement.md`  
+   - 문제정의, 사용자 페인포인트, 해결 목표
+2. `docs/00-product/02-requirements.md`  
+   - 기능/비기능 요구사항, 제외 범위
+3. `docs/00-product/03-scope-release-plan.md`  
+   - MVP/차기 범위, 단계별 릴리즈 계획
+4. `docs/01-policy/01-eligibility-policy.md`  
+   - 적합도 판정 등급/규칙/예외 처리
+5. `docs/01-policy/02-data-privacy-policy.md`  
+   - 개인정보 저장/암호화/삭제 정책
+6. `docs/01-policy/03-notification-policy.md`  
+   - 알림 채널, 중복방지, 리마인드 정책
+7. `docs/02-tech-wiki/01-architecture.md`  
+   - 시스템 구성도, 모듈 경계, 데이터 흐름
+8. `docs/02-tech-wiki/02-data-model.md`  
+   - 엔티티/스키마/필드 정의(암호화 포함)
+9. `docs/02-tech-wiki/03-parser-spec.md`  
+   - SH/LH 수집/파싱 규격, 실패 처리
+10. `docs/03-operations/01-monitoring-sla.md`  
+    - 모니터링 지표, 목표 지연시간(SLA)
+11. `docs/03-operations/02-incident-response.md`  
+    - 장애 분류, 대응 절차, 복구 체크리스트
+12. `docs/04-ai-instructions/01-agent-guidelines.md`  
+    - AI 작업 공통 규칙(문서 동기화/보수적 판단)
+13. `docs/04-ai-instructions/02-subagent-workflow.md`  
+    - 서브에이전트 순차 실행 계획과 산출물
+
+## B. 작성 순서 (재정렬)
+1) 문제정의 → 2) 요구사항 → 3) 범위/릴리즈  
+4) 판정정책 → 5) 개인정보정책 → 6) 알림정책  
+7) 아키텍처 → 8) 데이터모델 → 9) 파서규격  
+10) 모니터링SLA → 11) 장애대응  
+12) AI 가이드 → 13) 서브에이전트 워크플로우
+
+## C. 운영 규칙
+- 정책 문서 변경 시 기술 문서를 같은 커밋에서 동기화합니다.
+- 파싱 불확실성은 자동으로 `검토필요`로 분류합니다.
+- 개인정보 원문 로그는 금지합니다.
