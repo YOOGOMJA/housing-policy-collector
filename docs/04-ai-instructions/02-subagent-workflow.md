@@ -29,3 +29,10 @@
 - 정책 영향 변경: Product-Agent + Policy-Agent 공동 승인
 - 개인정보 영향 변경: Policy-Agent + Data-Agent 공동 승인
 - 알림 정책 변경: Policy-Agent + Notifier-Agent 공동 승인
+
+## 5. Git worktree 기반 병렬 실행 규칙
+- 동시다발 작업은 기본 브랜치(`work` 등) 1개 + 에이전트별 worktree 분리 전략을 사용합니다.
+- 각 서브에이전트는 자신의 worktree에서만 변경하고, 공통 계약 문서 변경은 선승인 후 반영합니다.
+- worktree 네이밍 예시: `../wt-collector`, `../wt-notifier`, `../wt-ops`
+- 병합 순서: 정책/계약 변경 브랜치 선병합 → 기능 브랜치 순차 리베이스/병합
+- 충돌이 잦은 파일(`docs/02-tech-wiki/02-data-model.md` 등)은 섹션 오너 승인 없이 직접 수정하지 않습니다.
