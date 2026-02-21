@@ -1,10 +1,10 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from "node:assert/strict";
+import test from "node:test";
 
-import { main as batchMain } from '../src/batch_main.js';
-import { resetStorageAdapter } from '../src/storage/index.js';
+import { main as batchMain } from "../src/batch_main.js";
+import { resetStorageAdapter } from "../src/storage/index.js";
 
-test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 출력한다', async () => {
+test("batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 출력한다", async () => {
   const originalFetch = globalThis.fetch;
   const originalLog = console.log;
 
@@ -13,7 +13,7 @@ test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 �
   globalThis.fetch = async (input) => {
     const url = String(input);
 
-    if (url.includes('i-sh.co.kr')) {
+    if (url.includes("i-sh.co.kr")) {
       return new Response(
         `
         <table>
@@ -28,7 +28,7 @@ test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 �
       );
     }
 
-    throw new Error('lh fetch failed');
+    throw new Error("lh fetch failed");
   };
 
   console.log = (message?: unknown): void => {
@@ -45,10 +45,16 @@ test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 �
   }
 
   assert.ok(logs.length >= 1);
-  const batchLog = logs.find((entry) => /batch executed at/.test(entry));
+  const batchLog = logs.find((entry) =>
+    /"event":"batch.completed"/.test(entry),
+  );
   assert.ok(batchLog !== undefined);
   assert.match(
     batchLog,
-    /"collected":1,"parsed":1,"saved":\{"created":1,"updated":0,"skipped":0\},"notified":1/,
+    /"pipeline":\{"runId":"[^"]+","collected":1,"parsed":1,"saved":\{"created":1,"updated":0,"skipped":0\},"notified":1,"matched":1\}/,
+  );
+  assert.match(
+    batchLog,
+    /"acceptance":\{"status":"FAIL","failures":\["\[ACCEPTANCE_FAIL\] metric=연속 배치 횟수 actual=1회 threshold=5회 formula=연속 5회 배치 실행"\]\}/,
   );
 });

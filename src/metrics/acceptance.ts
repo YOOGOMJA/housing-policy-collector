@@ -28,6 +28,18 @@ export type AcceptanceEvaluationResult = {
   snapshots: AcceptanceMetricSnapshot[];
 };
 
+export type AcceptanceRuntimeMetricRecord = {
+  runId: string;
+  collectedSuccessCount: number;
+  requiredFieldsCompleteCount: number;
+  reviewNeededCount: number;
+};
+
+type AcceptanceRuntimeMetricRepository = {
+  getRecentAcceptanceRuntimeMetrics(
+    limit: number,
+  ): AcceptanceRuntimeMetricRecord[];
+};
 
 export type ReviewNeededRatioDatasetRow = {
   runId: string;
@@ -35,13 +47,14 @@ export type ReviewNeededRatioDatasetRow = {
   reviewNeededCount: number;
 };
 
-export const ACCEPTANCE_REVIEW_NEEDED_RATIO_DATASET: ReviewNeededRatioDatasetRow[] = [
-  { runId: 'dataset-run-1', collectedSuccessCount: 49, reviewNeededCount: 7 },
-  { runId: 'dataset-run-2', collectedSuccessCount: 48, reviewNeededCount: 7 },
-  { runId: 'dataset-run-3', collectedSuccessCount: 50, reviewNeededCount: 7 },
-  { runId: 'dataset-run-4', collectedSuccessCount: 49, reviewNeededCount: 6 },
-  { runId: 'dataset-run-5', collectedSuccessCount: 49, reviewNeededCount: 7 },
-];
+export const ACCEPTANCE_REVIEW_NEEDED_RATIO_DATASET: ReviewNeededRatioDatasetRow[] =
+  [
+    { runId: "dataset-run-1", collectedSuccessCount: 49, reviewNeededCount: 7 },
+    { runId: "dataset-run-2", collectedSuccessCount: 48, reviewNeededCount: 7 },
+    { runId: "dataset-run-3", collectedSuccessCount: 50, reviewNeededCount: 7 },
+    { runId: "dataset-run-4", collectedSuccessCount: 49, reviewNeededCount: 6 },
+    { runId: "dataset-run-5", collectedSuccessCount: 49, reviewNeededCount: 7 },
+  ];
 
 export const buildAcceptanceSamplesFromReviewDataset = (
   dataset: ReviewNeededRatioDatasetRow[],
@@ -53,6 +66,24 @@ export const buildAcceptanceSamplesFromReviewDataset = (
       collectedSuccessCount: row.collectedSuccessCount,
       requiredFieldsCompleteCount: row.collectedSuccessCount,
       reviewNeededCount: row.reviewNeededCount,
+    };
+  });
+};
+
+export const buildAcceptanceSamplesFromRepository = (
+  repository: AcceptanceRuntimeMetricRepository,
+): AcceptanceBatchSample[] => {
+  const records = repository.getRecentAcceptanceRuntimeMetrics(
+    ACCEPTANCE_BATCH_RUN_COUNT,
+  );
+
+  return records.map((record) => {
+    return {
+      runId: record.runId,
+      shRecentTargetCount: SH_RECENT_TARGET_COUNT,
+      collectedSuccessCount: record.collectedSuccessCount,
+      requiredFieldsCompleteCount: record.requiredFieldsCompleteCount,
+      reviewNeededCount: record.reviewNeededCount,
     };
   });
 };
@@ -70,20 +101,20 @@ const toRate = (numerator: number, denominator: number): number => {
 };
 
 const buildFailureMessage = (params: {
-  metric: '수집 성공률' | '필수 필드 추출률' | '검토필요 분기율';
+  metric: "수집 성공률" | "필수 필드 추출률" | "검토필요 분기율";
   runId: string;
   actual: number;
   threshold: string;
   formula: string;
 }): string => {
   return [
-    '[ACCEPTANCE_FAIL]',
+    "[ACCEPTANCE_FAIL]",
     `run=${params.runId}`,
     `metric=${params.metric}`,
     `actual=${formatPercent(params.actual)}`,
     `threshold=${params.threshold}`,
     `formula=${params.formula}`,
-  ].join(' ');
+  ].join(" ");
 };
 
 export const evaluateAcceptanceBatches = (
@@ -104,12 +135,18 @@ export const evaluateAcceptanceBatches = (
   }
 
   const snapshots = samples.map((sample) => {
-    const collectionSuccessRate = toRate(sample.collectedSuccessCount, SH_RECENT_TARGET_COUNT);
+    const collectionSuccessRate = toRate(
+      sample.collectedSuccessCount,
+      SH_RECENT_TARGET_COUNT,
+    );
     const requiredFieldExtractionRate = toRate(
       sample.requiredFieldsCompleteCount,
       sample.collectedSuccessCount,
     );
-    const reviewNeededBranchRate = toRate(sample.reviewNeededCount, sample.collectedSuccessCount);
+    const reviewNeededBranchRate = toRate(
+      sample.reviewNeededCount,
+      sample.collectedSuccessCount,
+    );
 
     if (sample.shRecentTargetCount !== SH_RECENT_TARGET_COUNT) {
       failures.push(
@@ -120,11 +157,11 @@ export const evaluateAcceptanceBatches = (
     if (collectionSuccessRate < 0.95) {
       failures.push(
         buildFailureMessage({
-          metric: '수집 성공률',
+          metric: "수집 성공률",
           runId: sample.runId,
           actual: collectionSuccessRate,
-          threshold: '>=95.00%',
-          formula: '수집 성공 건수 / SH 최근 N(50)건',
+          threshold: ">=95.00%",
+          formula: "수집 성공 건수 / SH 최근 N(50)건",
         }),
       );
     }
@@ -132,11 +169,11 @@ export const evaluateAcceptanceBatches = (
     if (requiredFieldExtractionRate < 0.98) {
       failures.push(
         buildFailureMessage({
-          metric: '필수 필드 추출률',
+          metric: "필수 필드 추출률",
           runId: sample.runId,
           actual: requiredFieldExtractionRate,
-          threshold: '>=98.00%',
-          formula: '필수 필드 4개 완비 건수 / 수집 성공 건수',
+          threshold: ">=98.00%",
+          formula: "필수 필드 4개 완비 건수 / 수집 성공 건수",
         }),
       );
     }
@@ -144,11 +181,11 @@ export const evaluateAcceptanceBatches = (
     if (reviewNeededBranchRate > ACCEPTANCE_REVIEW_NEEDED_RATIO_THRESHOLD) {
       failures.push(
         buildFailureMessage({
-          metric: '검토필요 분기율',
+          metric: "검토필요 분기율",
           runId: sample.runId,
           actual: reviewNeededBranchRate,
-          threshold: '<=15.00%',
-          formula: '검토필요 분류 건수 / 수집 성공 건수',
+          threshold: "<=15.00%",
+          formula: "검토필요 분류 건수 / 수집 성공 건수",
         }),
       );
     }

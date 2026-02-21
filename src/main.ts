@@ -7,11 +7,16 @@ import { fileURLToPath } from "node:url";
 
 import type { DownstreamAnnouncementInput } from "./collector/index.js";
 import { collectAll } from "./collector/index.js";
+import type { MatchedItem } from "./matcher/index.js";
 import type { UserProfile } from "./matcher/index.js";
 import { match } from "./matcher/index.js";
 import { notify } from "./notifier/index.js";
 import { parse } from "./parser/index.js";
-import { save, saveBatchRunHistory } from "./storage/index.js";
+import {
+  save,
+  saveAcceptanceRuntimeMetrics,
+  saveBatchRunHistory,
+} from "./storage/index.js";
 
 /** 런타임 파이프라인 결과. (테스트용 acceptance 집계는 src/metrics/acceptance.ts에서 분리 관리) */
 export type PipelineResult = {
@@ -25,6 +30,17 @@ export type PipelineResult = {
     skipped: number;
   };
   notified: number;
+};
+
+const hasAcceptanceRequiredFieldsComplete = (
+  item: Pick<MatchedItem, "title" | "source_org" | "application_period" | "original_link">,
+): boolean => {
+  return (
+    item.title.trim().length > 0 &&
+    item.source_org !== null &&
+    item.application_period !== null &&
+    item.original_link !== null
+  );
 };
 
 const parseNonEmptyProfileField = (
@@ -115,6 +131,24 @@ export const runPipeline = async (
     saved_created_count: savedResult.created,
     saved_updated_count: savedResult.updated,
     saved_skipped_count: savedResult.skipped,
+  });
+
+  const shCollectedSuccessCount = collectResult.by_org.SH.items.length;
+  const shMatchedItems = matchedItems.filter((item) => {
+    return item.source_org === "SH";
+  });
+  const requiredFieldsCompleteCount = shMatchedItems.filter((item) => {
+    return hasAcceptanceRequiredFieldsComplete(item);
+  }).length;
+  const reviewNeededCount = shMatchedItems.filter((item) => {
+    return item.grade === "검토필요";
+  }).length;
+
+  saveAcceptanceRuntimeMetrics({
+    run_id: runId,
+    collected_success_count: shCollectedSuccessCount,
+    required_fields_complete_count: requiredFieldsCompleteCount,
+    review_needed_count: reviewNeededCount,
   });
 
   return {
