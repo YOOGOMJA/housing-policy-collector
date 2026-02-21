@@ -17,6 +17,7 @@
 - 파싱 결과(성공/실패 건수, 실패율)
 - 알림 결과(발송 성공/실패 건수, dedupe 적용 건수)
 - 에러 요약(Top N 메시지, trace id)
+- acceptance summary(회차별 PASS/FAIL, 연속 PASS 횟수, 미달 단일 병목 지표)
 - 다음 액션(재시도 여부, 담당자 mention)
 
 ## 4) 메시지 템플릿
@@ -27,20 +28,26 @@
 - Parse: success={{parse_success}}, fail={{parse_fail}} ({{parse_fail_rate}}%)
 - Notify: success={{notify_success}}, fail={{notify_fail}}, dedupe={{notify_dedupe}}
 - Error: {{error_summary}}
+- Acceptance: {{acceptance_summary}}
 - Action: {{next_action}}
 ```
 
-## 5) 실패/누락 대응 기준
+## 5) Acceptance summary 작성 기준
+- acceptance summary에는 최근 회차의 PASS/FAIL 결과와 연속 PASS 횟수를 포함합니다.
+- FAIL 회차가 있으면 해당 회차의 단일 병목 지표 1개와 개선 상태를 함께 기록합니다.
+- 연속 PASS 횟수는 Ralph 루프 종료 조건(5회 연속 PASS) 판단 기준으로 사용합니다.
+
+## 6) 실패/누락 대응 기준
 - 1회 실패: 즉시 Slack alert + 10분 뒤 1회 자동 재시도
 - 2회 연속 실패: `docs/03-operations/02-incident-response.md` 절차로 Incident 전환
 - 리포트 미수신(예정 시각 + 15분): Scheduler 상태 점검 후 수동 실행
 
-## 6) 보안/권한
+## 7) 보안/권한
 - Slack Secret(Bot Token, Webhook URL)은 Secret Manager에 저장
 - 로그에 Secret 원문 출력 금지
 - 운영 채널 외 전송 금지(테스트는 sandbox 채널 사용)
 
-## 7) 문서 동기화 규칙
+## 8) 문서 동기화 규칙
 - 지표 항목 변경 시 `docs/03-operations/01-monitoring-sla.md`를 함께 수정
 - 리포트 정책 변경 시 `docs/01-policy/03-notification-policy.md`를 함께 수정
 - 운영 절차 변경 시 `docs/workflow.md` 체크리스트를 함께 점검
