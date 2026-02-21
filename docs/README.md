@@ -3,31 +3,31 @@
 아래는 지금 프로젝트에 **필수로 필요한 문서 목록**입니다.
 
 ## A. 필수 문서 리스트업 (항번)
-1. `docs/00-product/01-problem-statement.md`  
+1. `docs/00-product/01-problem-statement.md`
    - 문제정의, 사용자 페인포인트, 해결 목표
-2. `docs/00-product/02-requirements.md`  
+2. `docs/00-product/02-requirements.md`
    - 기능/비기능 요구사항, 제외 범위
-3. `docs/00-product/03-scope-release-plan.md`  
+3. `docs/00-product/03-scope-release-plan.md`
    - MVP/차기 범위, 단계별 릴리즈 계획
-4. `docs/01-policy/01-eligibility-policy.md`  
+4. `docs/01-policy/01-eligibility-policy.md`
    - 적합도 판정 등급/규칙/예외 처리
-5. `docs/01-policy/02-data-privacy-policy.md`  
+5. `docs/01-policy/02-data-privacy-policy.md`
    - 개인정보 저장/암호화/삭제 정책
-6. `docs/01-policy/03-notification-policy.md`  
+6. `docs/01-policy/03-notification-policy.md`
    - 알림 채널, 중복방지, 리마인드 정책
-7. `docs/02-tech-wiki/01-architecture.md`  
+7. `docs/02-tech-wiki/01-architecture.md`
    - 시스템 구성도, 모듈 경계, 데이터 흐름
-8. `docs/02-tech-wiki/02-data-model.md`  
+8. `docs/02-tech-wiki/02-data-model.md`
    - 엔티티/스키마/필드 정의(암호화 포함)
-9. `docs/02-tech-wiki/03-parser-spec.md`  
+9. `docs/02-tech-wiki/03-parser-spec.md`
    - SH/LH 수집/파싱 규격, 실패 처리
-10. `docs/03-operations/01-monitoring-sla.md`  
+10. `docs/03-operations/01-monitoring-sla.md`
     - 모니터링 지표, 목표 지연시간(SLA)
-11. `docs/03-operations/02-incident-response.md`  
+11. `docs/03-operations/02-incident-response.md`
     - 장애 분류, 대응 절차, 복구 체크리스트
-12. `docs/04-ai-instructions/01-agent-guidelines.md`  
+12. `docs/04-ai-instructions/01-agent-guidelines.md`
     - AI 작업 공통 규칙(문서 동기화/보수적 판단)
-13. `docs/04-ai-instructions/02-subagent-workflow.md`  
+13. `docs/04-ai-instructions/02-subagent-workflow.md`
     - 서브에이전트 순차 실행 계획과 산출물
 14. `docs/04-ai-instructions/03-multi-agent-collaboration-rules.md`  
     - 동시다발 협업 규칙, 소유권, 품질 게이트
@@ -41,12 +41,12 @@
     - AGENTS.md 배치/우선순위/운영 절차
 
 ## B. 작성 순서 (재정렬)
-1) 문제정의 → 2) 요구사항 → 3) 범위/릴리즈  
-4) 판정정책 → 5) 개인정보정책 → 6) 알림정책  
-7) 아키텍처 → 8) 데이터모델 → 9) 파서규격  
-10) 모니터링SLA → 11) 장애대응  
-12) AI 가이드 → 13) 서브에이전트 워크플로우  
-14) 멀티 에이전트 협업 규칙
+1) 문제정의 → 2) 요구사항 → 3) 범위/릴리즈
+4) 판정정책 → 5) 개인정보정책 → 6) 알림정책
+7) 아키텍처 → 8) 데이터모델 → 9) 파서규격
+10) 모니터링SLA → 11) 장애대응
+12) AI 가이드 → 13) 서브에이전트 워크플로우
+14) AI 문서 갭 분석 → 15) 컨텍스트 플레이북 → 16) 프롬프트 플레이북 → 17) AGENTS 운영
 
 ## C. 운영 규칙
 - 정책 문서 변경 시 기술 문서를 같은 커밋에서 동기화합니다.
@@ -54,12 +54,15 @@
 - 파싱 불확실성은 자동으로 `검토필요`로 분류합니다.
 - 개인정보 원문 로그는 금지합니다.
 - AI 지침 문서 추가/변경 시 문서 인덱스와 워크플로우 문서를 함께 점검합니다.
-- 정책 문서 변경 시 기술 문서와 운영 문서를 같은 커밋에서 동기화합니다.
-14) AI 문서 갭 분석 → 15) 컨텍스트 플레이북 → 16) 프롬프트 플레이북 → 17) AGENTS 운영
-
+- 정기 리포트 정책 변경 시 `03-operations/03-scheduled-slack-report-runbook.md`와 `01-policy/03-notification-policy.md`를 함께 점검합니다.
 
 ## D. 루트 에이전트 운영 문서
 - `AGENTS.md`
   - 저장소 전역 에이전트 작업 규칙(우선순위/검증/커밋·PR 원칙)
 - `claude.md`
   - Claude 작업 입력 템플릿, 컨텍스트 운용, 프롬프트 체크리스트
+
+## E. 운영 보강 문서 (충돌 완화용 분리 항목)
+- `docs/03-operations/03-scheduled-slack-report-runbook.md`
+  - 정기 Slack bot 리포트 항목/주기/실패 대응 Runbook
+  - 기존 필수 문서 항번 체계를 유지하여 main 변경과의 병합 충돌 가능성을 줄입니다.
