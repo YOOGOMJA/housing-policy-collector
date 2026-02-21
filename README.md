@@ -12,7 +12,8 @@ SH/LH 청약 공고를 개인 조건에 맞춰 선별하고 알림을 보내는 
 ## 빠른 실행
 ```bash
 npm run dev
-npm run dev:batch
+npm run start
+npm run start:batch
 ```
 
 ## 빌드/운영 실행
