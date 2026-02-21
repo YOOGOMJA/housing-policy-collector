@@ -85,3 +85,5 @@
   - 기존 필수 문서 항번 체계를 유지하여 main 변경과의 병합 충돌 가능성을 줄입니다.
 - `docs/03-operations/04-commit-scope-governance.md`
   - 이슈 생성 기준과 commit scope 사용 원칙 운영 가이드
+- `docs/03-operations/05-open-pr-conflict-priority-report.md`
+  - Open PR 현황, merge conflict 여부, 재작업 우선순위 운영 기록
