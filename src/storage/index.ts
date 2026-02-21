@@ -1,8 +1,9 @@
 /** Storage 모듈. */
 
-import { createHash } from 'node:crypto';
+import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
 
-import type { MatchedItem } from '../matcher/index.js';
+import type { MatchedItem } from "../matcher/index.js";
 
 export type SaveResult = {
   created: number;
@@ -16,16 +17,37 @@ export type NotificationKeySaveResult = {
   createdKeys: string[];
 };
 
+export type BatchRunHistoryRecord = {
+  run_id: string;
+  profile_id: string;
+  collected_count: number;
+  parsed_count: number;
+  matched_count: number;
+  notified_count: number;
+  saved_created_count: number;
+  saved_updated_count: number;
+  saved_skipped_count: number;
+};
+
 type AnnouncementRecord = {
   announcement_id: string;
   source_snapshot_ref: string | null;
   content_hash: string;
 };
 
-type StorageAdapter = {
+type NotificationKeyRecord = {
+  idempotency_key: string;
+  announcement_id: string;
+  profile_id: string;
+};
+
+export type StorageAdapter = {
   saveByAnnouncement(items: AnnouncementRecord[]): SaveResult;
   filterUnstoredNotificationKeys(keys: string[]): string[];
-  saveNotificationKeys(keys: string[]): NotificationKeySaveResult;
+  saveNotificationKeys(
+    keys: NotificationKeyRecord[],
+  ): NotificationKeySaveResult;
+  saveBatchRunHistory(record: BatchRunHistoryRecord): void;
 };
 
 const buildContentHash = (item: MatchedItem): string => {
@@ -45,13 +67,29 @@ const buildContentHash = (item: MatchedItem): string => {
     reasons: item.reasons,
   };
 
-  return createHash('sha256').update(JSON.stringify(normalizedPayload)).digest('hex');
+  return createHash("sha256")
+    .update(JSON.stringify(normalizedPayload))
+    .digest("hex");
+};
+
+const parseNotificationKey = (key: string): NotificationKeyRecord => {
+  const [
+    announcementId = "unknown-announcement",
+    profileId = "unknown-profile",
+  ] = key.split(":");
+  return {
+    idempotency_key: key,
+    announcement_id: announcementId,
+    profile_id: profileId,
+  };
 };
 
 class InMemoryStorageAdapter implements StorageAdapter {
   private readonly records = new Map<string, AnnouncementRecord>();
 
   private readonly notificationKeys = new Set<string>();
+
+  private readonly batchRuns = new Map<string, BatchRunHistoryRecord>();
 
   saveByAnnouncement(items: AnnouncementRecord[]): SaveResult {
     const result: SaveResult = {
@@ -81,7 +119,9 @@ class InMemoryStorageAdapter implements StorageAdapter {
     return result;
   }
 
-  saveNotificationKeys(keys: string[]): NotificationKeySaveResult {
+  saveNotificationKeys(
+    keys: NotificationKeyRecord[],
+  ): NotificationKeySaveResult {
     const result: NotificationKeySaveResult = {
       created: 0,
       skipped: 0,
@@ -89,14 +129,14 @@ class InMemoryStorageAdapter implements StorageAdapter {
     };
 
     for (const key of keys) {
-      if (this.notificationKeys.has(key)) {
+      if (this.notificationKeys.has(key.idempotency_key)) {
         result.skipped += 1;
         continue;
       }
 
-      this.notificationKeys.add(key);
+      this.notificationKeys.add(key.idempotency_key);
       result.created += 1;
-      result.createdKeys.push(key);
+      result.createdKeys.push(key.idempotency_key);
     }
 
     return result;
@@ -105,9 +145,14 @@ class InMemoryStorageAdapter implements StorageAdapter {
   filterUnstoredNotificationKeys(keys: string[]): string[] {
     return keys.filter((key) => !this.notificationKeys.has(key));
   }
+
+  saveBatchRunHistory(record: BatchRunHistoryRecord): void {
+    this.batchRuns.set(record.run_id, record);
+  }
 }
 
 let storageAdapter: StorageAdapter = new InMemoryStorageAdapter();
+const require = createRequire(import.meta.url);
 
 export const setStorageAdapter = (adapter: StorageAdapter): void => {
   storageAdapter = adapter;
@@ -115,6 +160,14 @@ export const setStorageAdapter = (adapter: StorageAdapter): void => {
 
 export const resetStorageAdapter = (): void => {
   storageAdapter = new InMemoryStorageAdapter();
+};
+
+export const setSQLiteStorageAdapter = (dbPath: string): void => {
+  const { SQLiteStorageAdapter } = require("./sqlite-adapter.js") as {
+    SQLiteStorageAdapter: new (path: string) => StorageAdapter;
+  };
+
+  storageAdapter = new SQLiteStorageAdapter(dbPath);
 };
 
 export const save = (items: MatchedItem[]): SaveResult => {
@@ -130,11 +183,16 @@ export const save = (items: MatchedItem[]): SaveResult => {
 export const saveNotificationIdempotencyKeys = (
   keys: string[],
 ): NotificationKeySaveResult => {
-  return storageAdapter.saveNotificationKeys(keys);
+  const records = keys.map(parseNotificationKey);
+  return storageAdapter.saveNotificationKeys(records);
 };
 
 export const filterUnstoredNotificationIdempotencyKeys = (
   keys: string[],
 ): string[] => {
   return storageAdapter.filterUnstoredNotificationKeys(keys);
+};
+
+export const saveBatchRunHistory = (record: BatchRunHistoryRecord): void => {
+  storageAdapter.saveBatchRunHistory(record);
 };
