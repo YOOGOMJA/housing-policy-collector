@@ -2,6 +2,7 @@
 
 ## 1) 목적
 에이전트가 저장소 규칙을 안정적으로 해석하도록 AGENTS.md 배치/관리 기준을 정의합니다.
+`claude.md`와 함께 운용해 모델별 실행 가이드를 보완합니다.
 
 ## 2) 배치 원칙
 - 루트 AGENTS.md: 저장소 공통 규칙
@@ -16,7 +17,7 @@
 ## 4) 변경 절차
 1. 규칙 변경 이유를 이슈에 기록
 2. AGENTS.md 수정
-3. 관련 문서(`docs/workflow.md`, `docs/README.md`) 동기화
+3. 관련 문서(`docs/workflow.md`, `docs/README.md`, `claude.md`) 동기화
 4. 샘플 작업 1건으로 규칙 적용 검증
 
 ## 5) 점검 체크리스트
