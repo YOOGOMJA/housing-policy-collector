@@ -31,6 +31,14 @@
     - 서브에이전트 순차 실행 계획과 산출물
 14. `docs/04-ai-instructions/03-multi-agent-collaboration-rules.md`  
     - 동시다발 협업 규칙, 소유권, 품질 게이트
+15. `docs/04-ai-instructions/03-agent-doc-gap-analysis.md`
+    - AI 작업 문서의 누락 분석 및 보강 우선순위
+16. `docs/04-ai-instructions/04-context-window-playbook.md`
+    - 컨텍스트 윈도우 예산/로딩/분할 전략
+17. `docs/04-ai-instructions/05-prompt-engineering-playbook.md`
+    - 프롬프트 템플릿/가드레일/작업 유형별 스캐폴드
+18. `docs/04-ai-instructions/06-agents-md-ops.md`
+    - AGENTS.md 배치/우선순위/운영 절차
 
 ## B. 작성 순서 (재정렬)
 1) 문제정의 → 2) 요구사항 → 3) 범위/릴리즈  
@@ -41,6 +49,17 @@
 14) 멀티 에이전트 협업 규칙
 
 ## C. 운영 규칙
-- 정책 문서 변경 시 기술 문서와 운영 문서를 같은 커밋에서 동기화합니다.
+- 정책 문서 변경 시 기술 문서를 같은 커밋에서 동기화합니다.
+- SH/LH 청약 유형(application_type) 변경 시 `01-policy/01-eligibility-policy.md`와 `02-tech-wiki/03-parser-spec.md`를 함께 갱신합니다.
 - 파싱 불확실성은 자동으로 `검토필요`로 분류합니다.
 - 개인정보 원문 로그는 금지합니다.
+- AI 지침 문서 추가/변경 시 문서 인덱스와 워크플로우 문서를 함께 점검합니다.
+- 정책 문서 변경 시 기술 문서와 운영 문서를 같은 커밋에서 동기화합니다.
+14) AI 문서 갭 분석 → 15) 컨텍스트 플레이북 → 16) 프롬프트 플레이북 → 17) AGENTS 운영
+
+
+## D. 루트 에이전트 운영 문서
+- `AGENTS.md`
+  - 저장소 전역 에이전트 작업 규칙(우선순위/검증/커밋·PR 원칙)
+- `claude.md`
+  - Claude 작업 입력 템플릿, 컨텍스트 운용, 프롬프트 체크리스트

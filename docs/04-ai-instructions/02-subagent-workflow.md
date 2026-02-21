@@ -1,4 +1,4 @@
-# 서브에이전트 워크플로우 (항번 재작성)
+# 서브에이전트 워크플로우
 
 ## 0. 공통 전제
 - 모든 단계는 이전 단계 산출물 버전을 명시하고 시작합니다.
@@ -49,3 +49,4 @@
 - 기본 명령: `git fetch --all --prune` → `MAINLINE_REF=${MAINLINE_REF:-$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's#^origin/##')}` 확인 후 `git merge origin/${MAINLINE_REF}`(필요 시 `MAINLINE_REF=work`처럼 수동 지정).
 - 충돌 시 정책 문서와 인터페이스 계약 문서를 우선 해소하고, 섹션 오너 승인 뒤 커밋합니다.
 - 충돌 해결 후 문서 인덱스/연관 문서 반영 누락과 충돌 마커 잔존 여부를 재점검합니다.
+8. DocOps-Agent: 문서 인덱스/교차참조/AI 지침 동기화 검증
