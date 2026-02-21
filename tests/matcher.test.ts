@@ -147,6 +147,29 @@ test('match: 동일 공고도 UserProfile에 따라 판정 등급이 달라진�
 });
 
 
+test('match: 빈 프로필 값은 비교를 건너뛰어 확정 가능으로 오판정하지 않는다', () => {
+  const parsedItems = parse([
+    {
+      announcement_id: 'SH-2026-007-2',
+      source_org: 'SH',
+      application_type_raw: '행복주택',
+      eligibility_rules_raw:
+        '서울시 거주, 무주택세대구성원, 도시근로자 월평균소득 100% 이하, 총자산 3억 이하',
+    },
+  ]);
+
+  const [matched] = match(parsedItems, {
+    region: '   ',
+    incomeBand: '100% 이하',
+    assetBand: '3억 이하',
+    householdType: '무주택세대구성원',
+  });
+
+  assert.equal(matched.grade, '유력');
+  assert.equal(matched.reasons[0], 'INITIAL_RULE_MATCH: conservative-pass');
+});
+
+
 test('match fixture: 검토필요 사유별 비중 집계를 계산할 수 있다', () => {
   const matchedItems = match(
     parse([

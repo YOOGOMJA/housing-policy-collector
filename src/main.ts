@@ -24,23 +24,27 @@ export type PipelineResult = {
   notified: number;
 };
 
+const parseNonEmptyProfileField = (value: unknown, fieldName: keyof UserProfile): string => {
+  if (typeof value !== 'string') {
+    throw new Error(`invalid UserProfile: ${fieldName} must be non-empty string`);
+  }
+
+  const normalized = value.trim();
+  if (normalized.length === 0) {
+    throw new Error(`invalid UserProfile: ${fieldName} must be non-empty string`);
+  }
+
+  return normalized;
+};
+
 const parseUserProfile = (raw: string): UserProfile => {
   const parsed = JSON.parse(raw) as Partial<UserProfile>;
 
-  if (
-    typeof parsed.region !== 'string' ||
-    typeof parsed.incomeBand !== 'string' ||
-    typeof parsed.assetBand !== 'string' ||
-    typeof parsed.householdType !== 'string'
-  ) {
-    throw new Error('invalid UserProfile: region/incomeBand/assetBand/householdType must be string');
-  }
-
   return {
-    region: parsed.region,
-    incomeBand: parsed.incomeBand,
-    assetBand: parsed.assetBand,
-    householdType: parsed.householdType,
+    region: parseNonEmptyProfileField(parsed.region, 'region'),
+    incomeBand: parseNonEmptyProfileField(parsed.incomeBand, 'incomeBand'),
+    assetBand: parseNonEmptyProfileField(parsed.assetBand, 'assetBand'),
+    householdType: parseNonEmptyProfileField(parsed.householdType, 'householdType'),
   };
 };
 

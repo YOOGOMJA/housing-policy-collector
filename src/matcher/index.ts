@@ -115,12 +115,20 @@ const compareRequirementByProfile = (
     };
   }
 
-  const matched = requirement.includes(profileValue);
+  const normalizedProfileValue = profileValue.trim();
+  if (normalizedProfileValue.length === 0) {
+    return {
+      matched: false,
+      reason: `PROFILE_COMPARISON_SKIPPED: ${reasonCode}: profile-empty`,
+    };
+  }
+
+  const matched = requirement.includes(normalizedProfileValue);
   return {
     matched,
     reason: matched
-      ? `PROFILE_MATCH: ${reasonCode}: ${profileValue}`
-      : `PROFILE_MISMATCH: ${reasonCode}: expected-${profileValue} / requirement-${requirement}`,
+      ? `PROFILE_MATCH: ${reasonCode}: ${normalizedProfileValue}`
+      : `PROFILE_MISMATCH: ${reasonCode}: expected-${normalizedProfileValue} / requirement-${requirement}`,
   };
 };
 
