@@ -74,6 +74,13 @@ PR에는 아래 항목을 반드시 포함합니다.
 
 ## 4) TypeScript 전환 기준 및 검증 명령
 
+### 코드 변경 패턴 예시 (TypeScript 중심)
+
+- 신규 런타임 로직 추가: `src/**/*.ts`에 구현하고 실행 진입점(`src/main.ts`, `src/batch_main.ts`) 연결 여부를 확인합니다.
+- 배치/스케줄 로직 변경: `src/batch_main.ts`와 연관 모듈(`src/**`)의 타입 안정성(`typecheck`)을 함께 점검합니다.
+- 테스트 코드 변경: `tests/**/*.ts`에서 기존 시나리오와 타입 정의의 일관성을 확인합니다.
+- 설정 변경: `tsconfig*.json`, `package.json` 변경 시 lint/typecheck/build를 모두 실행해 TypeScript 실행 경로가 유지되는지 확인합니다.
+
 - `pyproject.toml`은 저장소에서 제거되어 Python 빌드/실행 경로는 운영하지 않습니다.
 - TS 코드 변경 시 아래 명령으로 lint/컨벤션 적용 여부를 검증합니다.
 
@@ -83,7 +90,7 @@ npm run typecheck
 npm run build
 ```
 
-- `npm run lint`: ESLint + `@typescript-eslint/*` + import 정렬 규칙 적용 확인 (TypeScript 파일 중심 검사: `src/**/*.ts`, `tests/**/*.ts`)
+- `npm run lint`: ESLint(TypeScript 규칙) + `@typescript-eslint/*` + import 정렬 규칙 적용 확인 (TypeScript 파일 중심 검사: `src/**/*.ts`, `tests/**/*.ts`)
 - `npm run typecheck`: TypeScript 타입 오류를 `--noEmit` 기준으로 검증
 - `npm run build`: `tsconfig.json` 컴파일 기준(`rootDir`, `outDir`, `module`, `target`, `strict`) 검증
 
