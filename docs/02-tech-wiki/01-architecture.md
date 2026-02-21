@@ -14,8 +14,10 @@
 
 ## 실행 진입점 분리
 
-- 앱 시작점: `src/main.py`
-- 배치 실행점: `src/batch_main.py`
+- 앱 시작점: `src/main.ts`
+- 배치 실행점: `src/batch_main.ts`
+- 개발 실행: `tsx` 또는 `ts-node`
+- 운영 실행: `tsc` 빌드 후 `node dist/...`
 
 ## Storage 전략: 로컬 DB 영속성 vs Supabase
 

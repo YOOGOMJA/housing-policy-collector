@@ -2,11 +2,16 @@
   "name": "housing-policy-collector",
   "version": "1.0.0",
   "private": true,
-  "description": "문서 우선 운영 저장소의 lint/format/commitlint 실행 환경",
+  "description": "TypeScript 기반 청약 공고 수집/매칭 파이프라인 실행 환경",
   "scripts": {
-    "lint": "eslint . --ext .js,.cjs --max-warnings=0",
-    "format": "prettier --write \"**/*.{js,cjs,json}\"",
-    "format:check": "prettier --check \"**/*.{js,cjs,json}\"",
+    "dev": "tsx src/main.ts",
+    "dev:batch": "tsx src/batch_main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "start:batch": "node dist/batch_main.js",
+    "lint": "eslint . --ext .js,.cjs,.mjs,.ts --max-warnings=0",
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,json}\"",
+    "format:check": "prettier --check \"**/*.{js,cjs,mjs,ts,json}\"",
     "commitlint": "commitlint --last",
     "commitlint:pr-title": "commitlint --config commitlint.pr-title.config.cjs --verbose",
     "docs:yaml:format:check": "bash -lc 'shopt -s globstar nullglob; files=(docs/**/*.yml docs/**/*.yaml); if [ ${#files[@]} -eq 0 ]; then echo \"YAML 파일 없음: 검사 생략\"; exit 0; fi; prettier --check \"${files[@]}\"'",
@@ -19,6 +24,12 @@
     "eslint": "^9.21.0",
     "globals": "^15.15.0",
     "prettier": "^3.5.2",
-    "yaml-lint": "^1.7.0"
-  }
+    "yaml-lint": "^1.7.0",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "type": "module"
 }
