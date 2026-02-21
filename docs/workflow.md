@@ -91,7 +91,7 @@ PR 생성/수정 시 `.github/workflows/ci.yml`의 아래 Job이 자동 실행�
 ### 조건별 실행 규칙
 - 코드 변경(PR에서 아래 패턴 중 하나 이상 변경):
   - `AGENTS.md`, `claude.md`, `.github/**`
-  - `src/**/*.py`, `tests/**/*.py`, `pyproject.toml`, `requirements*.txt`
+  - `**/*.ts`, `tsconfig.json`, `package.json`, `package-lock.json`
   - `**/*.js`, `**/*.cjs`, `**/*.mjs`, `**/*.json` (단, `docs/**` 제외)
   - 실행 Job: `Code lint check` + `Commit convention check`
 - 문서 변경(PR에서 `docs/**/*.yml`, `docs/**/*.yaml` 포함):

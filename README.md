@@ -3,15 +3,22 @@
 SH/LH 청약 공고를 개인 조건에 맞춰 선별하고 알림을 보내는 1인 사용자용 프로젝트입니다.
 
 ## 실행 스택
-- 단일 실행 스택: **Python 3.10+**
-- 프로젝트 설정 파일: `pyproject.toml`
-- 앱 시작점: `src/main.py`
-- 배치 시작점: `src/batch_main.py`
+- 단일 실행 스택: **Node.js 20+ + TypeScript**
+- 프로젝트 설정 파일: `package.json`, `tsconfig.json`
+- 앱 시작점: `src/main.ts`
+- 배치 시작점: `src/batch_main.ts`
 
 ## 빠른 실행
 ```bash
-python src/main.py
-python src/batch_main.py
+npm run dev
+npm run dev:batch
+```
+
+## 빌드/운영 실행
+```bash
+npm run build
+npm run start
+npm run start:batch
 ```
 
 ## 문서 시작점
