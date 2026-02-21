@@ -1,7 +1,10 @@
 /** Notifier 모듈. */
 
 import type { MatchedItem } from '../matcher/index.js';
-import { saveNotificationIdempotencyKeys } from '../storage/index.js';
+import {
+  filterUnstoredNotificationIdempotencyKeys,
+  saveNotificationIdempotencyKeys,
+} from '../storage/index.js';
 
 export type NotificationMessage = {
   idempotencyKey: string;
@@ -210,12 +213,15 @@ export const notify = async (
 ): Promise<number> => {
   const profileId = options.profileId ?? 'default-profile';
   const formatted = formatMatchedItemsForUser(matchedItems, profileId);
-  const keySaveResult = saveNotificationIdempotencyKeys(
-    formatted.map((message) => message.idempotencyKey),
+  const unstoredMessageKeySet = new Set(
+    filterUnstoredNotificationIdempotencyKeys(
+      formatted.map((message) => message.idempotencyKey),
+    ),
+  );
+  const deduplicatedMessages = formatted.filter((message) =>
+    unstoredMessageKeySet.has(message.idempotencyKey),
   );
 
-  const createdKeySet = new Set(keySaveResult.createdKeys);
-  const deduplicatedMessages = formatted.filter((message) => createdKeySet.has(message.idempotencyKey));
   if (deduplicatedMessages.length === 0) {
     return 0;
   }
@@ -232,8 +238,15 @@ export const notify = async (
   );
 
   const successfulMessageKeys = new Set(
-    channelResults.flat().filter((result) => result.success).map((result) => result.messageKey),
+    channelResults
+      .flat()
+      .filter((result) => result.success)
+      .map((result) => result.messageKey),
   );
+
+  if (successfulMessageKeys.size > 0) {
+    saveNotificationIdempotencyKeys([...successfulMessageKeys]);
+  }
 
   return successfulMessageKeys.size;
 };

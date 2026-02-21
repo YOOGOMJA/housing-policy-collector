@@ -99,6 +99,30 @@ test('notify: 실패 후 retry policy에 따라 재시도한다', async () => {
   assert.equal(channel.sentMessages.length, 2);
 });
 
+
+test('notify: 모든 채널 전송이 실패하면 idempotency 키를 저장하지 않아 다음 실행에서 재시도한다', async () => {
+  resetStorageAdapter();
+  const failingChannel = new RecordingChannel(Number.POSITIVE_INFINITY);
+
+  const first = await notify([createMatchedItem()], {
+    profileId: 'profile-4',
+    channels: [failingChannel],
+    retryPolicy: new FixedDelayRetryPolicy(1, 0),
+  });
+
+  const succeedingChannel = new RecordingChannel(1);
+  const second = await notify([createMatchedItem()], {
+    profileId: 'profile-4',
+    channels: [succeedingChannel],
+    retryPolicy: new FixedDelayRetryPolicy(1, 0),
+  });
+
+  assert.equal(first, 0);
+  assert.equal(second, 1);
+  assert.equal(failingChannel.sentMessages.length, 1);
+  assert.equal(succeedingChannel.sentMessages.length, 1);
+});
+
 test('notify: announcement_id + profile_id + grade 중복 키는 재전송하지 않는다', async () => {
   resetStorageAdapter();
   const channel = new RecordingChannel(1);

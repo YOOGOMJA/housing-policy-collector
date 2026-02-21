@@ -24,6 +24,7 @@ type AnnouncementRecord = {
 
 type StorageAdapter = {
   saveByAnnouncement(items: AnnouncementRecord[]): SaveResult;
+  filterUnstoredNotificationKeys(keys: string[]): string[];
   saveNotificationKeys(keys: string[]): NotificationKeySaveResult;
 };
 
@@ -100,6 +101,10 @@ class InMemoryStorageAdapter implements StorageAdapter {
 
     return result;
   }
+
+  filterUnstoredNotificationKeys(keys: string[]): string[] {
+    return keys.filter((key) => !this.notificationKeys.has(key));
+  }
 }
 
 let storageAdapter: StorageAdapter = new InMemoryStorageAdapter();
@@ -126,4 +131,10 @@ export const saveNotificationIdempotencyKeys = (
   keys: string[],
 ): NotificationKeySaveResult => {
   return storageAdapter.saveNotificationKeys(keys);
+};
+
+export const filterUnstoredNotificationIdempotencyKeys = (
+  keys: string[],
+): string[] => {
+  return storageAdapter.filterUnstoredNotificationKeys(keys);
 };
