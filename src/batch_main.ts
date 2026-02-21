@@ -3,11 +3,12 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { runPipeline } from './main.js';
+import { resolveUserProfileFromArgs, runPipeline } from './main.js';
 
 export const main = async (): Promise<void> => {
   const startedAt = new Date().toISOString();
-  const result = await runPipeline();
+  const profile = await resolveUserProfileFromArgs(process.argv);
+  const result = await runPipeline(profile);
   console.log(`batch executed at ${startedAt}: ${JSON.stringify(result)}`);
 };
 
