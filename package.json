@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx src/main.ts",
     "dev:batch": "tsx src/batch_main.ts",
+    "test": "tsx --test tests/**/*.test.ts",
+    "check:precommit": "npm run test && npm run lint && npm run typecheck && npm run build",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "start:batch": "node dist/batch_main.js",
