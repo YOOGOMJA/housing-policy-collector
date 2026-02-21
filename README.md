@@ -18,6 +18,7 @@ python src/batch_main.py
 - 전체 문서 인덱스: `docs/README.md`
 - 정기 Slack 리포트 운영 기준: `docs/03-operations/03-scheduled-slack-report-runbook.md`
 - 에이전트 운영 규칙: `AGENTS.md`
+- 커밋 스코프 운영 가이드: `docs/03-operations/04-commit-scope-governance.md`
 - Claude 작업 가이드: `claude.md`
 
 ## 현재 원칙
