@@ -77,7 +77,11 @@ export const runPipeline = async (profile?: UserProfile): Promise<PipelineResult
   );
   const matchedItems = match(parsedItems, profile);
   const savedResult = save(matchedItems);
-  const notifiedCount = notify(matchedItems);
+  const profileId =
+    profile === undefined
+      ? "anonymous-profile"
+      : `${profile.region}|${profile.incomeBand}|${profile.assetBand}|${profile.householdType}`;
+  const notifiedCount = await notify(matchedItems, { profileId });
 
   for (const orgResult of Object.values(collectResult.by_org)) {
     if (orgResult.error !== null) {

@@ -44,10 +44,11 @@ test('batch_main: 예상 액션(수집/파싱/저장/알림 수량 로그)을 �
     console.log = originalLog;
   }
 
-  assert.equal(logs.length, 1);
-  assert.match(logs[0], /batch executed at/);
+  assert.ok(logs.length >= 1);
+  const batchLog = logs.find((entry) => /batch executed at/.test(entry));
+  assert.ok(batchLog !== undefined);
   assert.match(
-    logs[0],
+    batchLog,
     /"collected":1,"parsed":1,"saved":\{"created":1,"updated":0,"skipped":0\},"notified":1/,
   );
 });

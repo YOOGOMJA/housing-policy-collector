@@ -10,6 +10,12 @@ export type SaveResult = {
   skipped: number;
 };
 
+export type NotificationKeySaveResult = {
+  created: number;
+  skipped: number;
+  createdKeys: string[];
+};
+
 type AnnouncementRecord = {
   announcement_id: string;
   source_snapshot_ref: string | null;
@@ -18,6 +24,7 @@ type AnnouncementRecord = {
 
 type StorageAdapter = {
   saveByAnnouncement(items: AnnouncementRecord[]): SaveResult;
+  saveNotificationKeys(keys: string[]): NotificationKeySaveResult;
 };
 
 const buildContentHash = (item: MatchedItem): string => {
@@ -42,6 +49,8 @@ const buildContentHash = (item: MatchedItem): string => {
 
 class InMemoryStorageAdapter implements StorageAdapter {
   private readonly records = new Map<string, AnnouncementRecord>();
+
+  private readonly notificationKeys = new Set<string>();
 
   saveByAnnouncement(items: AnnouncementRecord[]): SaveResult {
     const result: SaveResult = {
@@ -70,6 +79,27 @@ class InMemoryStorageAdapter implements StorageAdapter {
 
     return result;
   }
+
+  saveNotificationKeys(keys: string[]): NotificationKeySaveResult {
+    const result: NotificationKeySaveResult = {
+      created: 0,
+      skipped: 0,
+      createdKeys: [],
+    };
+
+    for (const key of keys) {
+      if (this.notificationKeys.has(key)) {
+        result.skipped += 1;
+        continue;
+      }
+
+      this.notificationKeys.add(key);
+      result.created += 1;
+      result.createdKeys.push(key);
+    }
+
+    return result;
+  }
 }
 
 let storageAdapter: StorageAdapter = new InMemoryStorageAdapter();
@@ -90,4 +120,10 @@ export const save = (items: MatchedItem[]): SaveResult => {
   }));
 
   return storageAdapter.saveByAnnouncement(records);
+};
+
+export const saveNotificationIdempotencyKeys = (
+  keys: string[],
+): NotificationKeySaveResult => {
+  return storageAdapter.saveNotificationKeys(keys);
 };
