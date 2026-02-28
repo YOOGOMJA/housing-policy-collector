@@ -36,6 +36,33 @@ export type AcceptanceRuntimeMetricRecord = {
   review_needed_count: number;
 };
 
+export type NoticeSaveRecord = {
+  announcement_id: string;
+  source_org: string | null;
+  application_type: string;
+  application_type_raw: string | null;
+  title: string;
+  original_link: string | null;
+  application_period: string | null;
+  eligibility_rules_raw: string | null;
+  region_requirement: string | null;
+  household_requirement: string | null;
+  income_requirement: string | null;
+  asset_requirement: string | null;
+  judgement_grade_cap: string;
+  parse_status: string;
+  source_snapshot_ref: string | null;
+  content_hash: string;
+};
+
+export type EligibilityResultSaveRecord = {
+  announcement_id: string;
+  profile_id: string;
+  grade: string;
+  reasons_json: string;
+  rule_version: string;
+};
+
 type AnnouncementRecord = {
   announcement_id: string;
   source_snapshot_ref: string | null;
@@ -59,6 +86,8 @@ export type StorageAdapter = {
   getRecentAcceptanceRuntimeMetrics(
     limit: number,
   ): AcceptanceRuntimeMetricRecord[];
+  saveNotices(records: NoticeSaveRecord[]): void;
+  saveEligibilityResults(records: EligibilityResultSaveRecord[]): void;
 };
 
 const buildContentHash = (item: MatchedItem): string => {
@@ -103,6 +132,10 @@ class InMemoryStorageAdapter implements StorageAdapter {
   private readonly batchRuns = new Map<string, BatchRunHistoryRecord>();
 
   private readonly acceptanceMetrics: AcceptanceRuntimeMetricRecord[] = [];
+
+  private readonly notices = new Map<string, NoticeSaveRecord>();
+
+  private readonly eligibilityResults: EligibilityResultSaveRecord[] = [];
 
   saveByAnnouncement(items: AnnouncementRecord[]): SaveResult {
     const result: SaveResult = {
@@ -176,6 +209,28 @@ class InMemoryStorageAdapter implements StorageAdapter {
 
     return [...this.acceptanceMetrics].slice(-limit).reverse();
   }
+
+  saveNotices(records: NoticeSaveRecord[]): void {
+    for (const record of records) {
+      this.notices.set(record.announcement_id, record);
+    }
+  }
+
+  saveEligibilityResults(records: EligibilityResultSaveRecord[]): void {
+    for (const record of records) {
+      const existingIndex = this.eligibilityResults.findIndex(
+        (r) =>
+          r.announcement_id === record.announcement_id &&
+          r.profile_id === record.profile_id &&
+          r.rule_version === record.rule_version,
+      );
+      if (existingIndex >= 0) {
+        this.eligibilityResults[existingIndex] = record;
+      } else {
+        this.eligibilityResults.push(record);
+      }
+    }
+  }
 }
 
 let storageAdapter: StorageAdapter = new InMemoryStorageAdapter();
@@ -234,4 +289,42 @@ export const getRecentAcceptanceRuntimeMetrics = (
   limit: number,
 ): AcceptanceRuntimeMetricRecord[] => {
   return storageAdapter.getRecentAcceptanceRuntimeMetrics(limit);
+};
+
+export const saveNotices = (items: MatchedItem[]): void => {
+  const records: NoticeSaveRecord[] = items.map((item) => ({
+    announcement_id: item.announcement_id,
+    source_org: item.source_org,
+    application_type: item.application_type,
+    application_type_raw: item.application_type_raw ?? null,
+    title: item.title,
+    original_link: item.original_link ?? null,
+    application_period: item.application_period ?? null,
+    eligibility_rules_raw: item.eligibility_rules_raw ?? null,
+    region_requirement: item.region_requirement ?? null,
+    household_requirement: item.household_requirement ?? null,
+    income_requirement: item.income_requirement ?? null,
+    asset_requirement: item.asset_requirement ?? null,
+    judgement_grade_cap: item.judgement_grade_cap,
+    parse_status: item.judgement_grade_cap === "검토필요" ? "검토필요" : "PARSED",
+    source_snapshot_ref: item.log.source_snapshot_ref ?? null,
+    content_hash: buildContentHash(item),
+  }));
+
+  storageAdapter.saveNotices(records);
+};
+
+export const saveEligibilityResults = (
+  items: MatchedItem[],
+  profileId: string,
+): void => {
+  const records: EligibilityResultSaveRecord[] = items.map((item) => ({
+    announcement_id: item.announcement_id,
+    profile_id: profileId,
+    grade: item.grade,
+    reasons_json: JSON.stringify(item.reasons),
+    rule_version: "v1",
+  }));
+
+  storageAdapter.saveEligibilityResults(records);
 };

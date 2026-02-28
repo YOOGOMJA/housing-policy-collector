@@ -3,6 +3,8 @@ import { DatabaseSync } from "node:sqlite";
 import type {
   AcceptanceRuntimeMetricRecord,
   BatchRunHistoryRecord,
+  EligibilityResultSaveRecord,
+  NoticeSaveRecord,
   NotificationKeySaveResult,
   SaveResult,
   StorageAdapter,
@@ -65,6 +67,38 @@ export class SQLiteStorageAdapter implements StorageAdapter {
         required_fields_complete_count INTEGER NOT NULL,
         review_needed_count INTEGER NOT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS notices (
+        announcement_id TEXT PRIMARY KEY,
+        source_org TEXT,
+        application_type TEXT NOT NULL DEFAULT 'UNKNOWN',
+        application_type_raw TEXT,
+        title TEXT NOT NULL,
+        original_link TEXT,
+        application_period TEXT,
+        eligibility_rules_raw TEXT,
+        region_requirement TEXT,
+        household_requirement TEXT,
+        income_requirement TEXT,
+        asset_requirement TEXT,
+        judgement_grade_cap TEXT NOT NULL,
+        parse_status TEXT NOT NULL DEFAULT 'PARSED',
+        source_snapshot_ref TEXT,
+        content_hash TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS eligibility_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        announcement_id TEXT NOT NULL,
+        profile_id TEXT NOT NULL,
+        grade TEXT NOT NULL,
+        reasons_json TEXT NOT NULL DEFAULT '[]',
+        rule_version TEXT NOT NULL DEFAULT 'v1',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        UNIQUE(announcement_id, profile_id, rule_version)
       );
     `);
   }
@@ -263,5 +297,116 @@ export class SQLiteStorageAdapter implements StorageAdapter {
 
     const rows = stmt.all(limit) as AcceptanceRuntimeMetricRecord[];
     return rows;
+  }
+
+  saveNotices(records: NoticeSaveRecord[]): void {
+    if (records.length === 0) {
+      return;
+    }
+
+    const stmt = this.db.prepare(`
+      INSERT INTO notices (
+        announcement_id,
+        source_org,
+        application_type,
+        application_type_raw,
+        title,
+        original_link,
+        application_period,
+        eligibility_rules_raw,
+        region_requirement,
+        household_requirement,
+        income_requirement,
+        asset_requirement,
+        judgement_grade_cap,
+        parse_status,
+        source_snapshot_ref,
+        content_hash,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(announcement_id) DO UPDATE SET
+        source_org = excluded.source_org,
+        application_type = excluded.application_type,
+        application_type_raw = excluded.application_type_raw,
+        title = excluded.title,
+        original_link = excluded.original_link,
+        application_period = excluded.application_period,
+        eligibility_rules_raw = excluded.eligibility_rules_raw,
+        region_requirement = excluded.region_requirement,
+        household_requirement = excluded.household_requirement,
+        income_requirement = excluded.income_requirement,
+        asset_requirement = excluded.asset_requirement,
+        judgement_grade_cap = excluded.judgement_grade_cap,
+        parse_status = excluded.parse_status,
+        source_snapshot_ref = excluded.source_snapshot_ref,
+        content_hash = excluded.content_hash,
+        updated_at = datetime('now')
+    `);
+
+    this.db.exec("BEGIN");
+    try {
+      for (const record of records) {
+        stmt.run(
+          record.announcement_id,
+          record.source_org,
+          record.application_type,
+          record.application_type_raw,
+          record.title,
+          record.original_link,
+          record.application_period,
+          record.eligibility_rules_raw,
+          record.region_requirement,
+          record.household_requirement,
+          record.income_requirement,
+          record.asset_requirement,
+          record.judgement_grade_cap,
+          record.parse_status,
+          record.source_snapshot_ref,
+          record.content_hash,
+        );
+      }
+      this.db.exec("COMMIT");
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
+  saveEligibilityResults(records: EligibilityResultSaveRecord[]): void {
+    if (records.length === 0) {
+      return;
+    }
+
+    const stmt = this.db.prepare(`
+      INSERT INTO eligibility_results (
+        announcement_id,
+        profile_id,
+        grade,
+        reasons_json,
+        rule_version,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(announcement_id, profile_id, rule_version) DO UPDATE SET
+        grade = excluded.grade,
+        reasons_json = excluded.reasons_json,
+        created_at = datetime('now')
+    `);
+
+    this.db.exec("BEGIN");
+    try {
+      for (const record of records) {
+        stmt.run(
+          record.announcement_id,
+          record.profile_id,
+          record.grade,
+          record.reasons_json,
+          record.rule_version,
+        );
+      }
+      this.db.exec("COMMIT");
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      throw error;
+    }
   }
 }

@@ -16,6 +16,8 @@ import {
   save,
   saveAcceptanceRuntimeMetrics,
   saveBatchRunHistory,
+  saveEligibilityResults,
+  saveNotices,
 } from "./storage/index.js";
 
 /** 런타임 파이프라인 결과. (테스트용 acceptance 집계는 src/metrics/acceptance.ts에서 분리 관리) */
@@ -107,10 +109,12 @@ export const runPipeline = async (
   const parsedItems = parse(parseInputItems);
   const matchedItems = match(parsedItems, profile);
   const savedResult = save(matchedItems);
+  saveNotices(matchedItems);
   const profileId =
     profile === undefined
       ? "anonymous-profile"
       : `${profile.region}|${profile.incomeBand}|${profile.assetBand}|${profile.householdType}`;
+  saveEligibilityResults(matchedItems, profileId);
   const notifiedCount = await notify(matchedItems, { profileId });
 
   for (const orgResult of Object.values(collectResult.by_org)) {

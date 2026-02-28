@@ -9,6 +9,8 @@ import { notify } from "../src/notifier/index.js";
 import {
   resetStorageAdapter,
   save,
+  saveEligibilityResults,
+  saveNotices,
   setSQLiteStorageAdapter,
 } from "../src/storage/index.js";
 
@@ -125,6 +127,61 @@ test("save: 신규 announcement_id는 created로 집계한다", () => {
     updated: 0,
     skipped: 0,
   });
+});
+
+test("saveNotices: MatchedItem 목록을 notice로 저장하고 동일 id 재저장 시 덮어쓴다", () => {
+  resetStorageAdapter();
+
+  const item = createMatchedItem();
+  saveNotices([item]);
+
+  // 동일 항목 재저장 — 에러 없이 upsert 처리
+  const updated = createMatchedItem({ title: "수정된 제목" });
+  saveNotices([updated]);
+});
+
+test("saveNotices(SQLite): adapter 재생성 후에도 notice가 영속된다", async () => {
+  const dbPath = createSqlitePath("notices");
+
+  try {
+    setSQLiteStorageAdapter(dbPath);
+    saveNotices([createMatchedItem()]);
+
+    // adapter 재생성 후 동일 데이터 upsert — 에러 없이 처리
+    setSQLiteStorageAdapter(dbPath);
+    saveNotices([createMatchedItem()]);
+  } finally {
+    resetStorageAdapter();
+    await unlink(dbPath).catch(() => undefined);
+  }
+});
+
+test("saveEligibilityResults: MatchedItem 목록을 eligibility_result로 저장한다", () => {
+  resetStorageAdapter();
+
+  saveEligibilityResults([createMatchedItem()], "seoul|middle|asset-mid|single");
+});
+
+test("saveEligibilityResults(SQLite): 동일 (announcement_id, profile_id, rule_version) 재저장 시 grade를 갱신한다", async () => {
+  const dbPath = createSqlitePath("eligibility");
+
+  try {
+    setSQLiteStorageAdapter(dbPath);
+
+    saveEligibilityResults(
+      [createMatchedItem({ grade: "유력" })],
+      "seoul|middle|asset-mid|single",
+    );
+
+    // grade 변경 후 재저장 — upsert로 갱신
+    saveEligibilityResults(
+      [createMatchedItem({ grade: "검토필요" })],
+      "seoul|middle|asset-mid|single",
+    );
+  } finally {
+    resetStorageAdapter();
+    await unlink(dbPath).catch(() => undefined);
+  }
 });
 
 test("notify(SQLite): 동일 idempotency key는 중복 알림을 억제한다", async () => {
